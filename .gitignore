@@ -1,0 +1,89 @@
+# =============================================================
+# What must NOT go to git. Rule of thumb: anything generated,
+# anything personal to one machine, anything secret.
+# =============================================================
+
+# --- Secrets and credentials (never commit) -------------------
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.p12
+*.pfx
+*.keystore
+*credentials*.json
+*service-account*.json
+.secrets/
+supabase/.env
+
+# --- Dependencies ---------------------------------------------
+node_modules/
+.pnpm-store/
+.yarn/*
+!.yarn/releases
+
+# --- Build outputs ---------------------------------------------
+prototipo/index.html
+.next/
+out/
+dist/
+build/
+*.tsbuildinfo
+next-env.d.ts
+.vercel/
+.wrangler/
+
+# --- Tests and coverage ----------------------------------------
+coverage/
+.nyc_output/
+test-results/
+playwright-report/
+blob-report/
+playwright/.cache/
+
+# --- Supabase local state (migrations in supabase/migrations ARE tracked)
+supabase/.branches/
+supabase/.temp/
+supabase/.supabase/
+# database dumps and backups: personal data, never in the repo
+backups/
+*.dump
+*.sql.gz
+
+# --- Python ---------------------------------------------------
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+
+# --- Logs and caches -------------------------------------------
+*.log
+npm-debug.log*
+yarn-debug.log*
+pnpm-debug.log*
+.cache/
+.eslintcache
+.stylelintcache
+.turbo/
+
+# --- Operating systems ----------------------------------------
+.DS_Store
+Thumbs.db
+ehthumbs.db
+desktop.ini
+$RECYCLE.BIN/
+
+# --- Editors and AI tools (personal settings) ------------------
+.idea/
+*.swp
+*~
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.json
+.claude/settings.local.json
+CLAUDE.local.md
+
+# --- Personal working material (not part of the project) -------
+altro/
+da-copiare-in-.github/
