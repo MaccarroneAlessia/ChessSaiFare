@@ -1,0 +1,1547 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ChessSaiFare – prototipo</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700&family=Inter:wght@400;500;600&family=Baloo+2:wght@500;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#f5f1ea; --panel:#ffffff; --ink:#1d2321; --muted:#5f6764; --line:#e3ddd2;
+  --accent:#2d6a4f; --accent-ink:#ffffff; --accent-soft:#e3efe8;
+  --sq-light:#eedcbf; --sq-dark:#b58863; --hl:#f6e27a; --sel:#9fd3a8;
+  --good:#2d8a4e; --ok:#6b8f2d; --warn:#c98a14; --bad:#c2410c;
+  --radius:14px; --font:'Inter',system-ui,sans-serif; --head:'Fraunces',Georgia,serif;
+  --btn-radius:10px;
+}
+body.junior{
+  --bg:#fff4d6; --panel:#ffffff; --ink:#2b2350; --muted:#6a5f96; --line:#ffd98a;
+  --accent:#7b4dff; --accent-ink:#fff; --accent-soft:#efe8ff;
+  --sq-light:#fff0b8; --sq-dark:#6ec6f2; --hl:#ffb3d1; --sel:#a6f0a0;
+  --radius:24px; --font:'Baloo 2',system-ui,sans-serif; --head:'Baloo 2',system-ui,sans-serif;
+  --btn-radius:999px;
+  background-image:radial-gradient(circle at 10% 10%,#ffe1ef 0 120px,transparent 121px),radial-gradient(circle at 95% 30%,#d8f3ff 0 160px,transparent 161px);
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--bg);color:var(--ink);font-family:var(--font);font-size:16px;line-height:1.5;min-height:100vh;transition:background .3s}
+header{position:sticky;top:0;z-index:10;background:color-mix(in srgb,var(--bg) 92%,transparent);backdrop-filter:blur(8px);border-bottom:1px solid var(--line)}
+.bar{max-width:1080px;margin:0 auto;padding:10px 16px;display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.logo{font-family:var(--head);font-weight:700;font-size:22px;display:flex;align-items:center;gap:8px;margin-right:auto}
+.logo span.k{display:inline-grid;place-items:center;width:34px;height:34px;border-radius:10px;background:var(--accent);color:var(--accent-ink);font-size:22px}
+body.junior .logo{font-size:26px}
+nav{display:flex;gap:4px;overflow-x:auto;max-width:100%}
+nav button{border:0;background:transparent;color:var(--muted);font:inherit;font-weight:600;padding:8px 12px;border-radius:var(--btn-radius);cursor:pointer;white-space:nowrap}
+nav button.on{background:var(--accent-soft);color:var(--accent)}
+body.junior nav button{font-size:18px}
+.switch{display:flex;align-items:center;gap:8px;font-weight:600;font-size:14px;cursor:pointer;user-select:none;border:1px solid var(--line);padding:6px 12px;border-radius:999px;background:var(--panel)}
+.switch .dot{width:34px;height:20px;border-radius:99px;background:#cfd6d2;position:relative;transition:.2s}
+.switch .dot::after{content:'';position:absolute;top:2px;left:2px;width:16px;height:16px;border-radius:50%;background:#fff;transition:.2s}
+body.junior .switch .dot{background:#ff7aa8}
+body.junior .switch .dot::after{left:16px}
+main{max-width:1080px;margin:0 auto;padding:18px 16px 60px}
+.view{display:none}.view.on{display:block}
+h1,h2,h3{font-family:var(--head);margin:0 0 8px;line-height:1.2}
+h1{font-size:28px}h2{font-size:22px}
+body.junior h1{font-size:34px;color:var(--accent)}
+.sub{color:var(--muted);margin:0 0 18px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:14px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:16px}
+.lesson-card{cursor:pointer;transition:transform .15s, box-shadow .15s;display:flex;flex-direction:column;gap:6px}
+.lesson-card:hover{transform:translateY(-2px);box-shadow:0 8px 20px rgba(0,0,0,.06)}
+.lesson-card .tag{font-size:12px;font-weight:600;color:var(--accent);background:var(--accent-soft);align-self:flex-start;padding:2px 10px;border-radius:99px}
+body.junior .lesson-card{border-width:3px}
+body.junior .lesson-card:nth-child(3n+1){background:#ffe9f2}
+body.junior .lesson-card:nth-child(3n+2){background:#e6f7ff}
+body.junior .lesson-card:nth-child(3n){background:#eaffe4}
+.btn{border:1px solid var(--line);background:var(--panel);color:var(--ink);font:inherit;font-weight:600;padding:9px 14px;border-radius:var(--btn-radius);cursor:pointer;display:inline-flex;align-items:center;gap:6px;transition:.15s}
+.btn:hover{border-color:var(--accent)}
+.btn.primary{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.btn.hand{background:#fff1d6;border-color:#f0c56b;color:#7a4b00}
+.btn:disabled{opacity:.45;cursor:default}
+body.junior .btn{font-size:18px;padding:10px 18px;border-width:2px}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.layout{display:grid;grid-template-columns:minmax(0,520px) minmax(0,1fr);gap:18px;align-items:start}
+.layout.nt{grid-template-columns:minmax(0,1fr) minmax(0,460px)}
+.layout.qz{grid-template-columns:minmax(0,380px) minmax(0,1fr)}
+@media (max-width:820px){.layout,.layout.nt,.layout.qz{grid-template-columns:1fr}}
+/* scacchiera */
+.board-wrap{position:relative}
+.board{display:grid;grid-template-columns:repeat(8,1fr);grid-template-rows:repeat(8,1fr);aspect-ratio:1;width:100%;border-radius:10px;overflow:hidden;box-shadow:0 6px 24px rgba(0,0,0,.12);user-select:none;touch-action:manipulation}
+body.junior .board{border-radius:22px;border:6px solid #fff;box-shadow:0 8px 0 #f3c75f,0 10px 30px rgba(0,0,0,.12)}
+.sq{position:relative;display:grid;place-items:center;cursor:pointer;min-width:0;min-height:0;overflow:hidden}
+.sq.l{background:var(--sq-light)}.sq.d{background:var(--sq-dark)}
+.sq.last::before{content:'';position:absolute;inset:0;background:var(--hl);opacity:.55}
+.sq.sel::before{content:'';position:absolute;inset:0;background:var(--sel);opacity:.8}
+.sq.check::before{content:'';position:absolute;inset:0;background:radial-gradient(circle,#ff4d4d 0,#ff4d4d55 45%,transparent 70%)}
+.sq .dot{position:absolute;width:28%;height:28%;border-radius:50%;background:rgba(0,0,0,.22);z-index:2}
+.sq .ring{position:absolute;inset:6%;border-radius:50%;border:4px solid rgba(0,0,0,.22);z-index:2}
+.pc{position:relative;z-index:3;font-size:min(9.2vw,52px);line-height:1;font-family:'Segoe UI Symbol','DejaVu Sans','Noto Sans Symbols 2',serif}
+.pc.w{color:#fff;-webkit-text-stroke:1.4px #2a2a2a;text-shadow:0 2px 2px rgba(0,0,0,.25)}
+.pc.b{color:#1d1d1d;text-shadow:0 2px 2px rgba(0,0,0,.2)}
+body.junior .pc.w{color:#fff;-webkit-text-stroke:1.6px #7b4dff}
+body.junior .pc.b{color:#3b2a8a}
+.coord{position:absolute;font-size:10px;font-weight:600;opacity:.6;z-index:1}
+.coord.f{bottom:2px;right:4px}.coord.r{top:2px;left:4px}
+/* prof */
+.prof{display:flex;gap:12px;align-items:flex-start}
+.avatar{flex:0 0 56px;height:56px}
+.bubble{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:14px 16px;position:relative;flex:1;min-height:70px}
+body.junior .bubble{border:3px solid var(--accent);font-size:19px}
+.bubble .who{font-size:12px;font-weight:600;color:var(--accent);text-transform:uppercase;letter-spacing:.04em;margin-bottom:4px}
+.progress{height:6px;background:var(--line);border-radius:99px;overflow:hidden;margin:12px 0}
+.progress i{display:block;height:100%;background:var(--accent);width:0;transition:width .3s}
+.qa{margin-top:12px;display:none}
+.qa.on{display:block}
+textarea,select,input[type=text]{width:100%;font:inherit;padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:#fff;color:var(--ink)}
+textarea{min-height:70px;resize:vertical}
+.answer{margin-top:10px;background:var(--accent-soft);border-radius:12px;padding:12px 14px;display:none;white-space:pre-wrap}
+.answer.on{display:block}
+.feed{display:flex;flex-direction:column;gap:8px;max-height:420px;overflow-y:auto;padding-right:4px}
+.cm{background:var(--panel);border:1px solid var(--line);border-left:4px solid var(--line);border-radius:10px;padding:10px 12px;font-size:15px}
+.cm .h{display:flex;justify-content:space-between;gap:8px;font-weight:600;font-size:13px;margin-bottom:2px}
+.cm.good{border-left-color:var(--good)}.cm.ok{border-left-color:var(--ok)}.cm.warn{border-left-color:var(--warn)}.cm.bad{border-left-color:var(--bad)}.cm.bot{border-left-color:var(--muted)}
+body.junior .cm{font-size:18px;border-radius:16px}
+.star{border:0;background:none;cursor:pointer;font-size:18px;color:#c9b27a;padding:0 2px;line-height:1}
+.star.on{color:#e0a100}
+.pill{font-size:12px;font-weight:600;padding:2px 8px;border-radius:99px;background:var(--accent-soft);color:var(--accent)}
+.status{font-weight:600;margin:10px 0}
+.banner{background:var(--accent);color:var(--accent-ink);border-radius:var(--radius);padding:14px 16px;margin-top:12px;display:none}
+.banner.on{display:block}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:var(--btn-radius);overflow:hidden;background:var(--panel)}
+.seg button{border:0;background:none;font:inherit;font-weight:600;padding:8px 12px;cursor:pointer;color:var(--muted)}
+.seg button.on{background:var(--accent);color:var(--accent-ink)}
+label.f{display:block;font-size:13px;font-weight:600;color:var(--muted);margin:12px 0 6px}
+.moves{display:grid;grid-template-columns:36px 1fr 1fr;gap:2px 6px;font-size:14px;max-height:300px;overflow:auto}
+.mv{padding:3px 6px;border-radius:6px;cursor:pointer}
+.mv:hover{background:var(--accent-soft)}
+.mv.cur{background:var(--accent);color:var(--accent-ink)}
+.mv .b{font-size:11px;font-weight:700;margin-left:4px}
+.b.good{color:var(--good)}.b.warn{color:var(--warn)}.b.bad{color:var(--bad)}
+.note{font-size:13px;color:var(--muted)}
+.empty{color:var(--muted);text-align:center;padding:30px}
+.fav{display:flex;gap:10px;align-items:flex-start}
+.fav .t{flex:1}
+.confetti{position:fixed;inset:0;pointer-events:none;z-index:50;overflow:hidden}
+.confetti i{position:absolute;top:-20px;width:10px;height:14px;border-radius:3px;animation:fall 1.6s linear forwards}
+@keyframes fall{to{transform:translateY(110vh) rotate(720deg)}}
+.typing::after{content:'▍';animation:blink 1s steps(2) infinite;margin-left:2px}
+@keyframes blink{50%{opacity:0}}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+.hero{display:flex;gap:18px;align-items:center;margin-bottom:18px}
+.guide-row{display:grid;grid-template-columns:70px 1fr auto auto;gap:8px;align-items:center;padding:6px 8px;border-radius:10px;font-size:14px}
+.guide-row:nth-child(odd){background:color-mix(in srgb,var(--accent-soft) 45%,transparent)}
+.guide-row .san{font-weight:700}
+.tag2{font-size:12px;font-weight:700;padding:2px 8px;border-radius:99px;justify-self:start}
+.tag2.best{background:var(--good);color:#fff}.tag2.good{background:#dff3e5;color:var(--good)}.tag2.ok{background:#eef3dd;color:var(--ok)}.tag2.warn{background:#fbefd5;color:#8a5a00}.tag2.bad{background:#fde3d6;color:var(--bad)}
+.guide-list{display:flex;flex-direction:column;max-height:320px;overflow:auto;margin-top:8px}
+.preview-bar{display:none;margin-top:10px;background:var(--accent-soft);border-radius:12px;padding:10px 12px}
+.preview-bar.on{display:block}
+.line{font-weight:600;word-spacing:2px}
+.line .cur{background:var(--accent);color:var(--accent-ink);border-radius:6px;padding:0 4px}
+.theme-card{cursor:pointer}
+.theme-card .cnt{font-size:13px;color:var(--muted)}
+.pz-list{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
+.pz-list button{border:1px solid var(--line);background:var(--panel);font:inherit;font-size:13px;font-weight:600;padding:6px 10px;border-radius:99px;cursor:pointer;color:var(--ink)}
+.pz-list button.on{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.pz-list button.done::after{content:' ✓'}
+.feedback{margin-top:12px;border-radius:12px;padding:12px 14px;display:none}
+.feedback.on{display:block}.feedback.ok{background:#dff3e5}.feedback.no{background:#fde3d6}
+.nt-text p{margin:0 0 10px;line-height:1.6}
+body.junior .nt-text p{font-size:19px}
+.nt-big{font-size:44px;font-weight:800;font-family:var(--head);line-height:1.1;margin:4px 0}
+.nt-big .en{font-size:18px;font-weight:600;color:var(--muted);margin-left:10px;font-family:var(--font)}
+.nt-parts{display:flex;flex-wrap:wrap;gap:8px;margin-top:6px}
+.nt-part{border:1px solid var(--line);border-radius:10px;padding:6px 10px;background:var(--panel);text-align:center;min-width:56px}
+.nt-part b{display:block;font-size:20px}
+.nt-part span{font-size:12px;color:var(--muted)}
+.nt-legend{margin-top:12px;display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:8px}
+.nt-legend div{border:1px solid var(--line);border-radius:10px;padding:6px;text-align:center;font-size:13px}
+.nt-legend b{display:block;font-size:22px}
+.board.nocoord .coord{display:none}
+body.no-coord .coord{display:none}
+body.no-hints .sq .dot,body.no-hints .sq .ring{display:none}
+body.no-last .sq.last::before{display:none}
+body.pcs-bold .pc.w{-webkit-text-stroke:2.4px #2a2a2a}
+body.pcs-bold .pc.b{text-shadow:none;-webkit-text-stroke:1px #000}
+body.pcs-soft .pc.w{-webkit-text-stroke:0;color:#fdfdfd;text-shadow:0 0 3px rgba(0,0,0,.65),0 1px 1px rgba(0,0,0,.5)}
+body.pcs-soft .pc.b{text-shadow:0 1px 1px rgba(255,255,255,.35)}
+.bp-grid{display:grid;grid-template-columns:minmax(0,1fr);gap:16px}
+.bp-swatches{display:flex;flex-wrap:wrap;gap:8px}
+.bp-sw{display:flex;align-items:center;gap:8px;border:2px solid var(--line);background:var(--panel);color:var(--ink);font:inherit;font-weight:600;padding:6px 10px;border-radius:var(--btn-radius);cursor:pointer}
+.bp-sw[aria-pressed=true]{border-color:var(--accent);box-shadow:0 0 0 2px var(--accent-soft)}
+.bp-sw .chip{display:grid;grid-template-columns:1fr 1fr;width:26px;height:26px;border-radius:6px;overflow:hidden;border:1px solid var(--line)}
+.bp-checks{display:flex;flex-direction:column;gap:8px}
+.bp-checks label{display:flex;align-items:center;gap:8px;font-weight:600}
+.kidonly{display:none}body.junior .kidonly{display:block}
+body.junior .adultonly{display:none}
+</style>
+</head>
+<body>
+<header>
+  <div class="bar">
+    <div class="logo"><span class="k">♞&#xFE0E;</span><span id="brand">ChessSaiFare</span></div>
+    <nav id="nav">
+      <button data-v="lessons" class="on">Aperture</button>
+      <button data-v="play">Gioca</button>
+      <button data-v="review">Revisione</button>
+      <button data-v="train">Allenamento</button>
+      <button data-v="notation">Notazione</button>
+      <button data-v="favs">Preferiti</button>
+      <button data-v="history">Storico</button>
+      <button data-v="board">Scacchiera</button>
+    </nav>
+    <div class="switch" id="juniorSwitch" role="switch" aria-checked="false" tabindex="0"><span class="dot"></span><span>Junior</span></div>
+  </div>
+</header>
+
+<main>
+<!-- LEZIONI -->
+<section class="view on" id="v-lessons">
+  <div id="lessonList">
+    <div class="hero">
+      <div class="avatar" style="flex-basis:72px;height:72px" id="heroAvatar"></div>
+      <div>
+        <h1 class="adultonly">Le aperture, spiegate dal prof</h1>
+        <h1 class="kidonly">Impara con Gufetto!</h1>
+        <p class="sub adultonly" style="margin:0">Il prof spiega mossa per mossa. Se hai un dubbio, alza la mano: si ferma e ti risponde.</p>
+        <p class="sub kidonly" style="margin:0">Scegli una storia: Gufetto ti racconta le mosse. Puoi fargli tutte le domande che vuoi!</p>
+      </div>
+    </div>
+    <div class="row adultonly" id="lessonFilters" style="margin-bottom:14px;gap:10px">
+      <div class="seg" id="lvlFilter" role="group" aria-label="Livello">
+        <button data-f="all" class="on">Tutte</button><button data-f="Principiante">Principiante</button><button data-f="Intermedio">Intermedio</button><button data-f="Avanzato">Avanzato</button>
+      </div>
+      <div class="seg" id="sideFilter" role="group" aria-label="Colore">
+        <button data-f="all" class="on">Bianco e nero</button><button data-f="bianco">Col bianco</button><button data-f="nero">Col nero</button>
+      </div>
+      <input type="text" id="lessonSearch" placeholder="Cerca un’apertura…" aria-label="Cerca un’apertura" style="max-width:240px">
+    </div>
+    <div class="grid" id="lessonGrid"></div>
+  </div>
+  <div id="lessonPlayer" style="display:none">
+    <div class="row" style="margin-bottom:12px"><button class="btn" id="lessonBack">← Tutte le lezioni</button><h2 id="lessonTitle" style="margin:0 0 0 6px"></h2></div>
+    <div class="layout">
+      <div class="board-wrap"><div class="board" id="lessonBoard"></div></div>
+      <div>
+        <div class="prof">
+          <div class="avatar" id="profAvatar"></div>
+          <div class="bubble"><div class="who" id="profWho">Il prof</div><div id="profText"></div></div>
+        </div>
+        <div class="progress"><i id="lessonProg"></i></div>
+        <div class="row">
+          <button class="btn" id="lPrev" aria-label="Mossa precedente">◀</button>
+          <button class="btn primary" id="lPlay">▶ Avvia lezione</button>
+          <button class="btn" id="lNext" aria-label="Mossa successiva">▶|</button>
+          <button class="btn hand" id="lHand">✋ Alza la mano</button>
+          <button class="star" id="lStar" title="Salva nei preferiti">☆</button>
+          <button class="btn" id="lVoice" title="Voce on/off">🔊 Voce</button>
+        </div>
+        <div class="qa" id="qa">
+          <label class="f" for="qText" id="qLabel">La tua domanda al prof</label>
+          <textarea id="qText" placeholder="Es. Perché non muovere subito la donna?"></textarea>
+          <div class="row" style="margin-top:8px">
+            <button class="btn primary" id="qSend">Chiedi</button>
+            <button class="btn" id="qMic" style="display:none">🎤 Detta</button>
+            <button class="btn" id="qResume">Riprendi la lezione</button>
+          </div>
+          <div class="answer" id="qAnswer"></div>
+          <div class="row" style="margin-top:6px"><button class="star" id="qStar" style="display:none" title="Salva la risposta">☆ salva risposta</button></div>
+        </div>
+        <p class="note" id="aiNote" style="display:none"></p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- GIOCA -->
+<section class="view" id="v-play">
+  <h1 class="adultonly">Gioca contro il bot</h1>
+  <h1 class="kidonly">Sfida il Robottino!</h1>
+  <div class="layout">
+    <div>
+      <div class="board-wrap"><div class="board" id="playBoard"></div></div>
+      <div class="status" id="playStatus">Tocca a te: muovi i bianchi.</div>
+      <div class="row">
+        <button class="btn" id="pUndo">↶ Riprova mossa</button>
+        <button class="btn" id="pNew">Nuova partita</button>
+        <button class="btn" id="pResign">Abbandona</button>
+      </div>
+      <div class="banner" id="pBanner"></div>
+    </div>
+    <div>
+      <div class="card">
+        <label class="f" style="margin-top:0">Modalità</label>
+        <div class="seg" id="modeSeg">
+          <button data-m="learn" class="on">Impara</button>
+          <button data-m="guided">Guidata</button>
+          <button data-m="silent">Senza commenti</button>
+          <button data-m="friend">Con un amico</button>
+        </div>
+        <div id="levelBox">
+          <label class="f">Livello del bot</label>
+          <div class="seg" id="levelSeg">
+            <button data-l="1" class="on">Facile</button>
+            <button data-l="2">Medio</button>
+            <button data-l="3">Difficile</button>
+          </div>
+        </div>
+        <label class="f">Partenza</label>
+        <div class="seg" id="startSeg">
+          <button data-s="init" class="on">Posizione iniziale</button>
+          <button data-s="fen">Da una posizione</button>
+        </div>
+        <div id="fenBox" style="display:none;margin-top:8px">
+          <label class="f" for="fenSel" style="margin-top:4px">Scegli un esempio</label>
+          <select id="fenSel"></select>
+          <label class="f" for="fenInput">Oppure incolla una posizione (FEN)</label>
+          <input type="text" id="fenInput" placeholder="es. r1bqkbnr/pppp1ppp/2n5/4p3/4P3/5N2/PPPP1PPP/RNBQKB1R w KQkq - 2 3" autocomplete="off" spellcheck="false">
+          <div class="row" style="margin-top:8px"><button class="btn primary" id="fenGo">Inizia da qui</button><span class="note" id="fenErr"></span></div>
+        </div>
+        <p class="note" id="modeNote" style="margin:10px 0 0"></p>
+      </div>
+      <div id="guideBox" class="card" style="margin-top:14px;display:none">
+        <div class="row" style="justify-content:space-between"><h3 style="margin:0" id="guideTitle">Le tue mosse possibili</h3><span class="note" id="guideBusy"></span></div>
+        <p id="guideSummary" style="margin:6px 0 0"></p>
+        <p class="note" id="guideLast" style="margin:6px 0 0"></p>
+        <div class="row" style="margin-top:10px">
+          <button class="btn primary" id="guideHint">💡 Suggerisci la migliore</button>
+          <button class="btn" id="guideShow">Mostra tutte le mosse</button>
+        </div>
+        <div class="guide-list" id="guideList" style="display:none"></div>
+        <div class="preview-bar" id="previewBar">
+          <div class="note" style="margin-bottom:4px" id="previewTitle">Il percorso</div>
+          <div class="line" id="previewLine"></div>
+          <div class="note" id="previewEval" style="margin-top:4px"></div>
+          <div class="row" style="margin-top:8px">
+            <button class="btn" id="pvPrev">◀</button><button class="btn" id="pvNext">▶</button>
+            <button class="btn" id="pvExplain">Spiegamelo</button>
+            <button class="btn primary" id="pvBack">Torna alla partita</button>
+          </div>
+          <div class="answer" id="pvAnswer"></div>
+        </div>
+      </div>
+      <div id="feedBox" style="margin-top:14px">
+        <div class="row" style="justify-content:space-between;margin-bottom:8px"><h3 style="margin:0">Commenti live</h3><button class="btn" id="pVoice" style="padding:5px 10px">🔇 Voce</button></div>
+        <div class="feed" id="feed"><div class="empty">Fai la prima mossa: il prof commenterà ogni tua scelta.</div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- REVISIONE -->
+<section class="view" id="v-review">
+  <h1>Revisione della partita</h1>
+  <p class="sub" id="rvSub">Gioca una partita (o aprila dallo Storico) e qui trovi l’analisi.</p>
+  <div class="layout" id="rvLayout" style="display:none">
+    <div>
+      <div class="board-wrap"><div class="board" id="rvBoard"></div></div>
+      <div class="row" style="margin-top:10px">
+        <button class="btn" id="rvFirst">|◀</button><button class="btn" id="rvPrev">◀</button><button class="btn" id="rvNext">▶</button><button class="btn" id="rvLast">▶|</button>
+      </div>
+    </div>
+    <div>
+      <div class="card" style="margin-bottom:12px">
+        <h3>Andamento</h3>
+        <svg id="rvGraph" viewBox="0 0 400 110" width="100%" role="img" aria-label="Grafico della valutazione"></svg>
+        <p class="note" id="rvGraphNote">Sopra la linea: vantaggio bianco. Sotto: vantaggio nero.</p>
+      </div>
+      <div class="card" style="margin-bottom:12px">
+        <h3>Mosse</h3>
+        <div class="moves" id="rvMoves"></div>
+      </div>
+      <div class="card">
+        <div class="row" style="justify-content:space-between"><h3 style="margin:0">Il commento del prof</h3><button class="star" id="rvStar" style="display:none">☆</button></div>
+        <p class="note" id="rvStats"></p>
+        <button class="btn primary" id="rvAsk">Chiedi la revisione al prof</button>
+        <div class="answer" id="rvAnswer"></div>
+        <div class="row" style="margin-top:10px"><input type="text" id="rvQ" placeholder="Domanda su questa posizione…"><button class="btn" id="rvQSend">Chiedi</button></div>
+        <div class="answer" id="rvQAnswer"></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ALLENAMENTO -->
+<section class="view" id="v-train">
+  <div id="trainHome">
+    <h1 class="adultonly">Allenamento a temi</h1>
+    <h1 class="kidonly">Le sfide di Gufetto</h1>
+    <p class="sub adultonly">Scegli un tema: ogni problema ha una mossa (o una sequenza) da trovare. Il motore controlla anche le soluzioni alternative.</p>
+    <p class="sub kidonly">Scegli una sfida e trova la mossa magica. Ogni sfida vinta vale una stellina!</p>
+    <div class="grid" id="themeGrid"></div>
+  </div>
+  <div id="trainPlayer" style="display:none">
+    <div class="row" style="margin-bottom:12px"><button class="btn" id="trainBack">← Tutti i temi</button><h2 id="trainTitle" style="margin:0 0 0 6px"></h2></div>
+    <div class="layout">
+      <div class="board-wrap"><div class="board" id="trainBoard"></div></div>
+      <div>
+        <div class="card">
+          <div class="note" id="pzTheme"></div>
+          <h3 id="pzTitle" style="margin:4px 0"></h3>
+          <p id="pzTask" style="margin:0;font-weight:600"></p>
+          <div class="feedback" id="pzFeedback"></div>
+          <div class="row" style="margin-top:12px">
+            <button class="btn" id="pzHint">💡 Aiutino</button>
+            <button class="btn" id="pzSolve">Mostra soluzione</button>
+            <button class="btn" id="pzRetry">↺ Riprova</button>
+            <button class="btn primary" id="pzNext">Prossimo ▶</button>
+            <button class="star" id="pzStar" title="Salva nei preferiti">☆</button>
+          </div>
+          <div class="row" style="margin-top:8px">
+            <button class="btn" id="pzGuided">Gioca da qui in modalità guidata</button>
+            <button class="btn" id="pzAsk">Spiegamelo</button>
+          </div>
+          <div class="answer" id="pzAnswer"></div>
+        </div>
+        <div class="pz-list" id="pzList"></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- NOTAZIONE -->
+<section class="view" id="v-notation">
+  <h1 class="adultonly">Leggere e scrivere gli scacchi</h1>
+  <h1 class="kidonly">Il nome delle case e delle mosse</h1>
+  <p class="sub adultonly">A sinistra la spiegazione, sotto l’esempio sulla scacchiera: guardi la mossa e vedi come si scrive, pezzo per pezzo.</p>
+  <p class="sub kidonly">Impara a leggere la scacchiera come una mappa del tesoro!</p>
+  <div class="row" id="ntTopics" style="margin-bottom:14px"></div>
+  <div class="layout nt">
+    <div class="card" id="ntExplain">
+      <h2 id="ntTitle"></h2>
+      <div id="ntText" class="nt-text"></div>
+      <div class="nt-legend adultonly" id="ntLegend"></div>
+    </div>
+    <div>
+      <div class="board-wrap"><div class="board" id="ntBoard"></div></div>
+      <div class="card" style="margin-top:12px">
+        <div class="note" id="ntExLabel">Esempio</div>
+        <div class="nt-big" id="ntBig">—</div>
+        <div class="nt-parts" id="ntParts"></div>
+        <p id="ntNote" style="margin:8px 0 0"></p>
+        <div class="row" style="margin-top:10px">
+          <button class="btn primary" id="ntPlay">▶ Guarda la mossa</button>
+          <button class="btn" id="ntNextEx">Altro esempio</button>
+          <button class="star" id="ntStar" title="Salva nei preferiti">☆</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="card" style="margin-top:18px">
+    <div class="row" style="justify-content:space-between"><h2 style="margin:0">Prova tu</h2><span class="pill" id="qzScore">0 / 0</span></div>
+    <div class="seg" id="qzSeg" style="margin-top:10px">
+      <button data-q="find" class="on">Trova la casa</button>
+      <button data-q="name">Come si chiama?</button>
+      <button data-q="write">Scrivi la mossa</button>
+      <button data-q="play">Gioca la mossa</button>
+    </div>
+    <label class="row note" style="margin-top:8px;gap:6px"><input type="checkbox" id="qzNoCoord"> Nascondi le coordinate (più difficile)</label>
+    <div class="layout qz" style="margin-top:12px">
+      <div class="board-wrap"><div class="board" id="qzBoard"></div></div>
+      <div>
+        <p id="qzTask" style="font-weight:600;font-size:18px;margin:0"></p>
+        <div class="row" id="qzOptions" style="margin-top:10px"></div>
+        <div class="row" id="qzWriteBox" style="margin-top:10px;display:none">
+          <input type="text" id="qzInput" placeholder="es. Cf3, exd5, O-O" autocomplete="off" spellcheck="false" style="max-width:220px" aria-label="Scrivi la mossa">
+          <button class="btn primary" id="qzCheck">Controlla</button>
+        </div>
+        <div class="feedback" id="qzFeedback"></div>
+        <div class="row" style="margin-top:10px"><button class="btn" id="qzRepeat">↺ Rivedi la mossa</button><button class="btn primary" id="qzNext">Nuova domanda ▶</button></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- PREFERITI -->
+<section class="view" id="v-favs">
+  <h1>Preferiti</h1>
+  <p class="sub">Aperture, spiegazioni, risposte e consigli che hai salvato con la stella.</p>
+  <div class="row" style="margin-bottom:12px" id="favFilter"></div>
+  <div id="favList" style="display:flex;flex-direction:column;gap:10px"></div>
+</section>
+
+<!-- STORICO -->
+<section class="view" id="v-history">
+  <h1>Storico partite</h1>
+  <p class="sub">Nel prototipo le partite restano in questo browser; nel sito vero vanno nel tuo account.</p>
+  <div id="histList" style="display:flex;flex-direction:column;gap:10px"></div>
+</section>
+
+<!-- SCACCHIERA -->
+<section class="view" id="v-board">
+  <h1>La tua scacchiera</h1>
+  <p class="sub">Scegli colori e stile. Le scelte restano in questo browser e valgono per tutte le schermate.</p>
+  <div class="layout">
+    <div class="board-wrap"><div class="board" id="bpBoard" aria-label="Anteprima della scacchiera"></div></div>
+    <div class="bp-grid">
+      <div class="card">
+        <h3>Colori delle case</h3>
+        <div class="bp-swatches" id="bpThemes" role="group" aria-label="Colori delle case"></div>
+      </div>
+      <div class="card">
+        <h3>Stile dei pezzi</h3>
+        <div class="bp-swatches" id="bpPieces" role="group" aria-label="Stile dei pezzi"></div>
+      </div>
+      <div class="card">
+        <h3>Aiuti sulla scacchiera</h3>
+        <div class="bp-checks">
+          <label><input type="checkbox" id="bpCoords"> Mostra le coordinate (a–h, 1–8)</label>
+          <label><input type="checkbox" id="bpHints"> Mostra le mosse possibili</label>
+          <label><input type="checkbox" id="bpLast"> Evidenzia l'ultima mossa</label>
+        </div>
+      </div>
+      <div class="row"><button class="btn" id="bpReset">Ripristina</button></div>
+    </div>
+  </div>
+</section>
+</main>
+
+<div class="sr" aria-live="polite" id="live"></div>
+<div id="pinModal" style="display:none;position:fixed;inset:0;background:rgba(20,20,40,.45);z-index:40;place-items:center;padding:16px">
+  <div class="card" style="max-width:340px;width:100%;font-family:Inter,system-ui,sans-serif;border-radius:16px">
+    <h3 style="font-family:Inter,system-ui,sans-serif">Area genitori</h3>
+    <p class="note" style="margin:0 0 10px">Per uscire dal profilo Junior serve il PIN del genitore. Nel prototipo è <strong>1234</strong>.</p>
+    <input type="text" id="pinInput" inputmode="numeric" maxlength="4" placeholder="PIN a 4 cifre" autocomplete="off">
+    <p class="note" id="pinErr" style="color:#c2410c;margin:6px 0 0;min-height:1.2em"></p>
+    <div class="row" style="margin-top:8px"><button class="btn primary" id="pinOk">Entra</button><button class="btn" id="pinCancel">Annulla</button></div>
+  </div>
+</div>
+
+<script id="chessSrc">/*CHESS*/</script>
+<script id="engineSrc">/*ENGINE*/</script>
+<script>/*LESSONS*/</script>
+<script>/*PUZZLES*/</script>
+<script>/*NOTATION*/</script>
+<script>/*BOARDPREFS*/</script>
+<script>
+/* ============ utilities ============ */
+var $ = function (s) { return document.querySelector(s); };
+var $$ = function (s) { return Array.prototype.slice.call(document.querySelectorAll(s)); };
+function el(tag, cls, html) { var e = document.createElement(tag); if (cls) e.className = cls; if (html != null) e.innerHTML = html; return e; }
+function esc(s) { return String(s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
+var store = {
+  get: function (k, d) { try { var v = localStorage.getItem('scacchiai.' + k); return v ? JSON.parse(v) : d; } catch (e) { return d; } },
+  set: function (k, v) { try { localStorage.setItem('scacchiai.' + k, JSON.stringify(v)); } catch (e) {} }
+};
+var state = { junior: store.get('junior', false), voice: store.get('voice', true) };
+
+/* ============ Claude capabilities (AI, voice, dictation) ============ */
+function cap(name) { try { return window.claude && window.claude.use ? window.claude.use(name).catch(function () { return null; }) : Promise.resolve(null); } catch (e) { return Promise.resolve(null); } }
+var samplerP = cap('sample'), ttsP = cap('tts'), dictP = cap('dictation');
+var AI = { ready: null };
+samplerP.then(function (s) { AI.ready = !!s; if (!s) showAiNote(); });
+dictP.then(function (d) { if (d) { $('#qMic').style.display = ''; setupDictation(d); } });
+
+function systemPrompt() {
+  return state.junior
+    ? 'Sei Gufetto, un gufo maestro di scacchi che parla con un bambino di 6-10 anni. Rispondi in italiano con frasi corte e allegre, parole semplici, al massimo 3 frasi. Niente notazione tecnica: di\' "il cavallo", "la regina", "la casa vicino al re". Incoraggia sempre.'
+    : 'Sei un maestro di scacchi italiano, paziente e chiaro, che insegna a principianti e intermedi. Rispondi in italiano in 2-4 frasi. Spiega il perché delle mosse (centro, sviluppo, sicurezza del re, tattica). Usa la notazione algebrica italiana o inglese solo se utile. Non inventare varianti: se citi una mossa migliore usa solo quella fornita dal motore.';
+}
+async function ask(prompt, onText) {
+  var s = await samplerP;
+  if (!s) return null;
+  try {
+    var r = await s(systemPrompt() + '\n\n' + prompt, { modelTier: 'quick', cache: false, onText: function (x) { if (onText) onText(x.text); } });
+    return r.text;
+  } catch (e) {
+    if (e && e.code === 'not_granted') { AI.ready = false; showAiNote(); }
+    if (e && e.code === 'rate_limited') return 'Il prof sta riprendendo fiato: riprova tra un attimo.';
+    return null;
+  }
+}
+function showAiNote() {
+  var n = $('#aiNote');
+  n.style.display = '';
+  n.textContent = 'Le risposte AI funzionano quando apri la pagina su claude.ai e consenti l’accesso a Claude. Qui vedi risposte di esempio.';
+}
+
+var Voice = {
+  speaking: false,
+  async speak(text) {
+    if (!state.voice || !text) return;
+    var t = await ttsP;
+    if (t) { try { await t.speak(text.slice(0, 1900), { language: 'it', voice: state.junior ? 'airy' : 'buttery', rate: state.junior ? 1.0 : 1.05 }); return; } catch (e) { if (e && e.code === 'not_granted') {} else return; } }
+    if (window.speechSynthesis) {
+      return new Promise(function (res) {
+        try {
+          speechSynthesis.cancel();
+          var u = new SpeechSynthesisUtterance(text); u.lang = 'it-IT'; u.rate = state.junior ? 1.0 : 1.05; u.pitch = state.junior ? 1.25 : 1;
+          var it = speechSynthesis.getVoices().filter(function (v) { return /^it/i.test(v.lang); })[0]; if (it) u.voice = it;
+          u.onend = res; u.onerror = res; speechSynthesis.speak(u);
+        } catch (e) { res(); }
+      });
+    }
+    return new Promise(function (r) { setTimeout(r, Math.min(9000, 1200 + text.length * 45)); });
+  },
+  async stop() {
+    var t = await ttsP; if (t) { try { t.stop(); } catch (e) {} }
+    try { window.speechSynthesis && speechSynthesis.cancel(); } catch (e) {}
+  }
+};
+function voiceLabel() { var s = state.voice ? '🔊 Voce' : '🔇 Voce'; $('#lVoice').textContent = s; $('#pVoice').textContent = s; }
+function toggleVoice() { state.voice = !state.voice; store.set('voice', state.voice); voiceLabel(); if (!state.voice) Voice.stop(); }
+
+/* ============ motore in un Web Worker ============ */
+var engineWorker = null, engCalls = {}, engId = 0;
+(function () {
+  try {
+    var src = $("#chessSrc").textContent + '\n' + $('#engineSrc').textContent + '\n' +
+      'onmessage=function(e){var d=e.data,g=new Chess(d.fen),out={id:d.id};' +
+      'if(d.type==="best"){var r=Engine.best(g,d.depth,d.rand||0);out.san=r?r.move.san:null;out.score=r?r.score:0;}' +
+      'else if(d.type==="analyze"){var b=Engine.best(g,2,0);var bestSan=b?b.move.san:null,bestScore=b?b.score:0;var m=g.move(d.san);var after=g.game_over()?-(g.in_checkmate()?-Engine.MATE:0):-(Engine.best(g,1,0)||{score:0}).score;out.bestSan=bestSan;out.bestScore=bestScore;out.after=after;out.loss=Math.max(0,bestScore-after);out.white=(d.fen.split(" ")[1]==="w"?after:-after);}' +
+      'else if(d.type==="eval"){out.white=Engine.evalWhite(g,1);}' +
+      'else if(d.type==="all"){out.moves=Engine.all(g,d.depth||2);}' +
+      'else if(d.type==="line"){var L=Engine.line(g,d.san,d.len||5,d.depth||2);out.line=L.line;out.white=L.white;}' +
+      'postMessage(out);};';
+    engineWorker = new Worker(URL.createObjectURL(new Blob([src], { type: 'text/javascript' })));
+    engineWorker.onmessage = function (e) { var cb = engCalls[e.data.id]; delete engCalls[e.data.id]; if (cb) cb(e.data); };
+  } catch (e) { engineWorker = null; }
+})();
+function eng(msg) {
+  return new Promise(function (res) {
+    msg.id = ++engId;
+    if (engineWorker) { engCalls[msg.id] = res; engineWorker.postMessage(msg); return; }
+    setTimeout(function () { // ripiego sul thread principale
+      var g = new Chess(msg.fen), out = { id: msg.id };
+      if (msg.type === 'best') { var r = Engine.best(g, msg.depth, msg.rand || 0); out.san = r ? r.move.san : null; out.score = r ? r.score : 0; }
+      else if (msg.type === 'analyze') { var b = Engine.best(g, 2, 0); out.bestSan = b ? b.move.san : null; out.bestScore = b ? b.score : 0; g.move(msg.san); var after = g.game_over() ? (g.in_checkmate() ? Engine.MATE : 0) : -(Engine.best(g, 1, 0) || { score: 0 }).score; out.after = after; out.loss = Math.max(0, out.bestScore - after); out.white = msg.fen.split(' ')[1] === 'w' ? after : -after; }
+      else if (msg.type === 'eval') { out.white = Engine.evalWhite(g, 1); }
+      else if (msg.type === 'all') { out.moves = Engine.all(g, msg.depth || 2); }
+      else if (msg.type === 'line') { var L = Engine.line(g, msg.san, msg.len || 5, msg.depth || 2); out.line = L.line; out.white = L.white; }
+      res(out);
+    }, 20);
+  });
+}
+
+/* ============ scacchiera ============ */
+var GLYPH = { k: '♚', q: '♛', r: '♜', b: '♝', n: '♞', p: '♟' };
+function Board(root, opts) {
+  this.root = root; this.opts = opts || {}; this.sel = null; this.last = null; this.game = null;
+  var self = this;
+  root.addEventListener('click', function (e) {
+    var sq0 = e.target.closest('.sq'); if (sq0 && self.opts.onSquare && self.opts.onSquare(sq0.dataset.sq)) return;
+    var sq = sq0; if (!sq || !self.opts.interactive || !self.opts.canMove || !self.opts.canMove()) return;
+    self.click(sq.dataset.sq);
+  });
+}
+Board.prototype.render = function (game) {
+  this.game = game; var b = game.board(), html = '', files = 'abcdefgh';
+  var legal = [];
+  if (this.sel) legal = game.moves({ square: this.sel, verbose: true });
+  var inCheck = game.in_check() ? game.turn() : null;
+  var flip = this.opts.flip ? this.opts.flip() : false;
+  for (var rr = 0; rr < 8; rr++) for (var cc = 0; cc < 8; cc++) {
+    var r = flip ? 7 - rr : rr, c = flip ? 7 - cc : cc;
+    var name = files[c] + (8 - r), p = b[r][c], cls = 'sq ' + ((r + c) % 2 ? 'd' : 'l');
+    if (this.last && (this.last.from === name || this.last.to === name)) cls += ' last';
+    if (this.sel === name) cls += ' sel';
+    if (p && p.type === 'k' && p.color === inCheck) cls += ' check';
+    var inner = '';
+    if (cc === 0) inner += '<span class="coord r">' + (8 - r) + '</span>';
+    if (rr === 7) inner += '<span class="coord f">' + files[c] + '</span>';
+    if (this.hint === name) cls += ' sel';
+    var tgt = legal.filter(function (m) { return m.to === name; })[0];
+    if (tgt) inner += tgt.captured ? '<span class="ring"></span>' : '<span class="dot"></span>';
+    if (p) inner += '<span class="pc ' + p.color + '">' + GLYPH[p.type] + '︎</span>';
+    html += '<div class="' + cls + '" data-sq="' + name + '" role="gridcell" aria-label="' + name + (p ? ' ' + p.color + p.type : '') + '">' + inner + '</div>';
+  }
+  this.root.innerHTML = html;
+};
+Board.prototype.click = function (name) {
+  var g = this.game, p = g.get(name);
+  if (this.sel) {
+    var mv = g.moves({ square: this.sel, verbose: true }).filter(function (m) { return m.to === name; })[0];
+    if (mv) { var from = this.sel; this.sel = null; this.opts.onMove({ from: from, to: name, promotion: 'q' }); return; }
+  }
+  if (p && p.color === g.turn()) { this.sel = this.sel === name ? null : name; } else this.sel = null;
+  this.render(g);
+};
+
+/* ============ avatar ============ */
+function profSvg() {
+  return state.junior
+    ? '<svg viewBox="0 0 64 64" width="100%" height="100%" aria-hidden="true"><circle cx="32" cy="34" r="27" fill="#ff9f43"/><path d="M10 16l10 8M54 16l-10 8" stroke="#e67e22" stroke-width="6" stroke-linecap="round"/><circle cx="23" cy="30" r="10" fill="#fff"/><circle cx="41" cy="30" r="10" fill="#fff"/><circle cx="24" cy="31" r="5" fill="#2b2350"/><circle cx="40" cy="31" r="5" fill="#2b2350"/><circle cx="25.5" cy="29.5" r="1.6" fill="#fff"/><circle cx="41.5" cy="29.5" r="1.6" fill="#fff"/><path d="M28 40l4 6 4-6z" fill="#ffd32a"/><ellipse cx="32" cy="54" rx="12" ry="6" fill="#ffd8a8"/></svg>'
+    : '<svg viewBox="0 0 64 64" width="100%" height="100%" aria-hidden="true"><circle cx="32" cy="32" r="30" fill="#2d6a4f"/><circle cx="32" cy="27" r="11" fill="#f1d7bf"/><path d="M14 54c3-10 10-14 18-14s15 4 18 14" fill="#f1d7bf"/><path d="M21 22c2-7 7-10 11-10s10 3 11 10c-4-3-8-4-11-4s-8 1-11 4z" fill="#5b4636"/><circle cx="27" cy="27" r="4" fill="none" stroke="#1d2321" stroke-width="1.6"/><circle cx="37" cy="27" r="4" fill="none" stroke="#1d2321" stroke-width="1.6"/><path d="M31 27h2" stroke="#1d2321" stroke-width="1.6"/><path d="M28 34c2 2 6 2 8 0" stroke="#8a4b2f" stroke-width="1.6" fill="none" stroke-linecap="round"/></svg>';
+}
+function refreshAvatars() { $('#profAvatar').innerHTML = profSvg(); $('#heroAvatar').innerHTML = profSvg(); $('#profWho').textContent = state.junior ? 'Gufetto' : 'Il prof'; }
+
+/* ============ preferiti ============ */
+function favs() { return store.get('favs', []); }
+function isFav(key) { return favs().some(function (f) { return f.key === key; }); }
+function toggleFav(item) {
+  var list = favs(), i = list.findIndex(function (f) { return f.key === item.key; });
+  if (i >= 0) list.splice(i, 1); else { item.at = Date.now(); list.unshift(item); }
+  store.set('favs', list); return i < 0;
+}
+function bindStar(btn, getItem, labelOn, labelOff) {
+  function paint() { var it = getItem(); if (!it) return; var on = isFav(it.key); btn.classList.toggle('on', on); btn.textContent = on ? (labelOn || '★') : (labelOff || '☆'); }
+  btn.onclick = function () { var it = getItem(); if (!it) return; toggleFav(it); paint(); };
+  btn.paint = paint; return paint;
+}
+
+/* ============ LEZIONI ============ */
+var L = { lesson: null, step: -1, playing: false, game: null, board: new Board($('#lessonBoard'), { flip: function () { return L.lesson && L.lesson.side === 'nero'; } }), token: 0 };
+var LF = { lvl: 'all', side: 'all', q: '' };
+var LVL_ORDER = { Principiante: 0, Intermedio: 1, Avanzato: 2 };
+function renderLessonGrid() {
+  var g = $('#lessonGrid'); g.innerHTML = '';
+  var q = LF.q.trim().toLowerCase();
+  var list = LESSONS.filter(function (l) {
+    if (state.junior) return l.kids;
+    return (LF.lvl === 'all' || l.level === LF.lvl) && (LF.side === 'all' || l.side === LF.side) && (!q || l.name.toLowerCase().indexOf(q) >= 0);
+  }).slice().sort(function (a, b) { return (LVL_ORDER[a.level] - LVL_ORDER[b.level]) || a.name.localeCompare(b.name, 'it'); });
+  if (!list.length) { g.innerHTML = '<div class="card empty">Nessuna apertura con questi filtri.</div>'; return; }
+  list.forEach(function (l) {
+    var c = el('div', 'card lesson-card');
+    c.innerHTML = '<span class="tag">' + (state.junior ? 'Storia' : esc(l.level) + ' · col ' + esc(l.side || 'bianco')) + '</span><h3>' + esc(state.junior ? l.kidName : l.name) + '</h3><p class="note" style="margin:0">' + esc(state.junior ? l.kidIntro : l.intro) + '</p><div class="row" style="margin-top:auto;justify-content:space-between"><span class="note">' + l.steps.length + ' mosse</span><button class="star" title="Salva apertura">☆</button></div>';
+    var star = c.querySelector('.star');
+    bindStar(star, function () { return { key: 'op:' + l.id, type: 'Apertura', title: l.name, text: l.intro }; })();
+    star.addEventListener('click', function (e) { e.stopPropagation(); });
+    c.onclick = function () { openLesson(l); };
+    g.appendChild(c);
+  });
+}
+function openLesson(l) {
+  L.lesson = l; L.step = -1; L.playing = false; L.game = new Chess(); L.board.last = null;
+  $('#lessonList').style.display = 'none'; $('#lessonPlayer').style.display = '';
+  $('#lessonTitle').textContent = state.junior ? l.kidName : l.name;
+  closeQA(); showStep(); window.scrollTo(0, 0);
+}
+function bindLessonFilters() {
+  ['lvlFilter', 'sideFilter'].forEach(function (id) {
+    $$('#' + id + ' button').forEach(function (b) { b.onclick = function () {
+      $$('#' + id + ' button').forEach(function (x) { x.classList.toggle('on', x === b); });
+      if (id === 'lvlFilter') LF.lvl = b.dataset.f; else LF.side = b.dataset.f;
+      renderLessonGrid();
+    }; });
+  });
+  $('#lessonSearch').oninput = function () { LF.q = this.value; renderLessonGrid(); };
+}
+bindLessonFilters();
+function stepText() {
+  var l = L.lesson; if (L.step < 0) return state.junior ? l.kidIntro : l.intro;
+  var s = l.steps[L.step]; return state.junior ? (s.k || s.t) : s.t;
+}
+function moveLabel(i) { var n = Math.floor(i / 2) + 1; return n + (i % 2 ? '… ' : '. ') + sanIt(L.lesson.steps[i].san); }
+function showStep() {
+  var l = L.lesson; L.game = new Chess(); var last = null;
+  for (var i = 0; i <= L.step; i++) last = L.game.move(l.steps[i].san);
+  L.board.last = last; L.board.render(L.game);
+  var txt = stepText();
+  $('#profText').innerHTML = (L.step >= 0 ? '<strong>' + esc(moveLabel(L.step)) + '</strong> — ' : '') + esc(txt);
+  $('#lessonProg').style.width = ((L.step + 1) / l.steps.length * 100) + '%';
+  $('#lPrev').disabled = L.step < 0; $('#lNext').disabled = L.step >= l.steps.length - 1;
+  $('#lPlay').textContent = L.playing ? '⏸ Pausa' : (L.step >= l.steps.length - 1 ? '↺ Ricomincia' : (L.step < 0 ? '▶ Avvia lezione' : '▶ Continua'));
+  $('#lStar').paint && $('#lStar').paint();
+}
+bindStar($('#lStar'), function () {
+  if (!L.lesson) return null;
+  return { key: 'ls:' + L.lesson.id + ':' + L.step, type: 'Spiegazione', title: L.lesson.name + (L.step >= 0 ? ' · ' + moveLabel(L.step) : ''), text: stepText() };
+});
+async function playLoop() {
+  var my = ++L.token;
+  while (L.playing && my === L.token) {
+    await Voice.speak(stepText());
+    if (!L.playing || my !== L.token) return;
+    await new Promise(function (r) { setTimeout(r, 700); });
+    if (!L.playing || my !== L.token) return;
+    if (L.step >= L.lesson.steps.length - 1) { L.playing = false; showStep(); return; }
+    L.step++; showStep();
+  }
+}
+$('#lPlay').onclick = function () {
+  if (L.playing) { L.playing = false; L.token++; Voice.stop(); showStep(); return; }
+  if (L.step >= L.lesson.steps.length - 1) L.step = -1;
+  closeQA(); L.playing = true; showStep(); playLoop();
+};
+$('#lNext').onclick = function () { pauseLesson(); if (L.step < L.lesson.steps.length - 1) { L.step++; showStep(); Voice.speak(stepText()); } };
+$('#lPrev').onclick = function () { pauseLesson(); if (L.step >= 0) { L.step--; showStep(); } };
+$('#lessonBack').onclick = function () { pauseLesson(); $('#lessonPlayer').style.display = 'none'; $('#lessonList').style.display = ''; };
+$('#lVoice').onclick = toggleVoice; $('#pVoice').onclick = toggleVoice;
+function pauseLesson() { L.playing = false; L.token++; Voice.stop(); if (L.lesson) showStep(); }
+function closeQA() { $('#qa').classList.remove('on'); $('#qAnswer').classList.remove('on'); $('#qStar').style.display = 'none'; }
+$('#lHand').onclick = function () {
+  pauseLesson();
+  $('#qa').classList.add('on'); $('#qText').focus();
+  $('#qLabel').textContent = state.junior ? 'Cosa vuoi chiedere a Gufetto?' : 'La tua domanda al prof';
+  $('#qText').placeholder = state.junior ? 'Es. Perché il cavallo salta?' : 'Es. Perché non muovere subito la donna?';
+};
+$('#qResume').onclick = function () { closeQA(); L.playing = true; showStep(); if (L.step < L.lesson.steps.length - 1) { L.step++; showStep(); } playLoop(); };
+var lastAnswer = null;
+$('#qSend').onclick = async function () {
+  var q = $('#qText').value.trim(); if (!q) return;
+  var box = $('#qAnswer'); box.classList.add('on'); box.classList.add('typing'); box.textContent = state.junior ? 'Gufetto ci pensa…' : 'Il prof ci pensa…';
+  var l = L.lesson, played = l.steps.slice(0, L.step + 1).map(function (s, i) { return (i % 2 ? '' : (i / 2 + 1) + '. ') + s.san; }).join(' ');
+  var prompt = 'Contesto: lezione sull\'apertura "' + l.name + '". Mosse giocate finora: ' + (played || 'nessuna') + '. FEN: ' + L.game.fen() + '.\nUltima spiegazione data: "' + stepText() + '"\nDomanda dello studente: "' + q + '"\nRispondi alla domanda restando sulla posizione attuale, poi invita a riprendere la lezione.';
+  var ans = await ask(prompt, function (t) { box.textContent = t; });
+  box.classList.remove('typing');
+  if (!ans) ans = state.junior ? 'Bella domanda! (Esempio) Nella versione completa Gufetto ti risponde davvero, guardando la scacchiera di adesso.' : 'Risposta di esempio: nel sito completo il prof risponde qui usando la posizione attuale (' + (played || 'posizione iniziale') + ') e la tua domanda.';
+  box.textContent = ans; lastAnswer = { q: q, a: ans, where: l.name + (L.step >= 0 ? ' · ' + moveLabel(L.step) : '') };
+  var st = $('#qStar'); st.style.display = ''; st.paint();
+  Voice.speak(ans);
+};
+bindStar($('#qStar'), function () { return lastAnswer && { key: 'qa:' + lastAnswer.q + lastAnswer.where, type: 'Risposta', title: lastAnswer.where + ' — ' + lastAnswer.q, text: lastAnswer.a }; }, '★ risposta salvata', '☆ salva risposta');
+function setupDictation(d) {
+  var on = false, base = '';
+  d.onPartial(function (x) { $('#qText').value = base + x.text; });
+  d.onFinal(function (x) { base = base + x.text + ' '; $('#qText').value = base; });
+  d.onState(function (x) { on = x.state === 'listening'; $('#qMic').textContent = on ? '⏹ Stop' : '🎤 Detta'; });
+  $('#qMic').onclick = function () {
+    if (on) { d.stop().catch(function () {}); return; }
+    base = $('#qText').value ? $('#qText').value + ' ' : '';
+    d.start().catch(function (e) { if (e && e.code === 'not_granted') $('#qMic').style.display = 'none'; });
+  };
+}
+
+/* ============ GIOCA ============ */
+var START_FEN = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1';
+var P = { game: new Chess(), mode: 'learn', level: 1, busy: false, over: false, analyses: [], board: null, moveNo: 0, saved: false,
+  startFen: START_FEN, userColor: 'w', startKind: 'init', guide: null, preview: null, token: 0 };
+P.board = new Board($('#playBoard'), {
+  interactive: true,
+  flip: function () { return P.mode !== 'friend' && P.userColor === 'b'; },
+  canMove: function () { return !P.busy && !P.over && !P.preview && (P.mode === 'friend' || P.game.turn() === P.userColor); },
+  onMove: function (m) { userMove(m); }
+});
+var KIND = {
+  good: { t: 'Ottima mossa', k: 'Super mossa!' },
+  ok: { t: 'Mossa buona', k: 'Bene!' },
+  warn: { t: 'Imprecisione', k: 'Mmm, quasi…' },
+  bad: { t: 'Errore', k: 'Ops! Attenzione' }
+};
+function classify(loss) { return loss < 30 ? 'good' : loss < 100 ? 'ok' : loss < 250 ? 'warn' : 'bad'; }
+function colorName(c) { return c === 'w' ? 'bianco' : 'nero'; }
+function localComment(kind, san, best, mv) {
+  var J = state.junior;
+  if (kind === 'good') {
+    if (mv && mv.flags.indexOf('k') >= 0 || mv && mv.flags.indexOf('q') >= 0) return J ? 'Hai messo il re al sicuro con l’arrocco. Bravissimo!' : 'Arrocco: re al sicuro e torre pronta a entrare in gioco.';
+    if (mv && mv.captured) return J ? 'Gnam! Hai mangiato un pezzo nel modo giusto.' : 'Cattura corretta: guadagni o pareggi il materiale senza rischi.';
+    if (mv && (mv.piece === 'n' || mv.piece === 'b') && P.moveNo <= 10) return J ? 'Hai fatto uscire un pezzo: così si fa!' : 'Sviluppi un pezzo minore verso il centro: esattamente il piano giusto in apertura.';
+    return J ? 'Mossa perfetta, continua così!' : 'È tra le mosse migliori in questa posizione.';
+  }
+  if (kind === 'ok') return J ? 'Va bene! C’era una mossa ancora più forte: ' + best + '.' : 'Mossa giocabile. Il motore preferiva ' + best + ', di poco.';
+  if (kind === 'warn') return J ? 'Si poteva fare meglio con ' + best + '. Guarda bene i pezzi dell’avversario!' : 'Imprecisione: perdi un po’ di vantaggio. Meglio era ' + best + '.';
+  return J ? 'Attento! Così l’avversario può prenderti qualcosa. Prova ' + best + '.' : 'Errore: lascia una tattica all’avversario. La mossa migliore era ' + best + '. Puoi usare "Riprova mossa".';
+}
+function addComment(kind, head, text, extraKey) {
+  var f = $('#feed'); if (f.querySelector('.empty')) f.innerHTML = '';
+  var c = el('div', 'cm ' + kind);
+  c.innerHTML = '<div class="h"><span>' + esc(head) + '</span><button class="star" title="Salva il consiglio">☆</button></div><div class="tx">' + esc(text) + '</div>';
+  var star = c.querySelector('.star');
+  bindStar(star, function () { return { key: 'tip:' + (extraKey || head) + ':' + c.querySelector('.tx').textContent.slice(0, 40), type: 'Consiglio', title: head, text: c.querySelector('.tx').textContent }; })();
+  f.appendChild(c); f.scrollTop = f.scrollHeight; return c;
+}
+function setStatus(t) { $('#playStatus').textContent = t; $('#live').textContent = t; }
+function yourTurnText() { return P.mode === 'friend' ? 'Muove il ' + colorName(P.game.turn()) + '.' : (P.game.in_check() ? (state.junior ? 'Scacco! Proteggi il re!' : 'Sei sotto scacco.') : 'Tocca a te: muovi il ' + colorName(P.userColor) + '.'); }
+function updateModeUI() {
+  $('#levelBox').style.display = P.mode === 'friend' ? 'none' : '';
+  $('#feedBox').style.display = P.mode === 'learn' ? '' : 'none';
+  $('#guideBox').style.display = P.mode === 'guided' ? '' : 'none';
+  $('#pUndo').style.display = (P.mode === 'learn' || P.mode === 'guided') ? '' : 'none';
+  $('#modeNote').textContent = P.mode === 'learn' ? (state.junior ? 'Gufetto ti dice cosa pensa di ogni mossa.' : 'Il prof commenta ogni mossa; sugli errori interviene l’AI con una spiegazione.')
+    : P.mode === 'guided' ? (state.junior ? 'Gufetto guarda tutte le mosse possibili e ti dice quali sono buone.' : 'Prima di ogni tua mossa il motore valuta tutte le mosse legali: puoi chiedere la migliore e vedere il percorso che la rende tale.')
+    : P.mode === 'silent' ? 'Partita pulita, nessun commento. La revisione arriva a fine partita.'
+    : 'Due giocatori sullo stesso dispositivo. Nel sito vero: partita online con un link d’invito.';
+}
+$$('#modeSeg button').forEach(function (b) { b.onclick = function () { $$('#modeSeg button').forEach(function (x) { x.classList.toggle('on', x === b); }); P.mode = b.dataset.m; updateModeUI(); newGame(P.startFen); }; });
+$$('#levelSeg button').forEach(function (b) { b.onclick = function () { $$('#levelSeg button').forEach(function (x) { x.classList.toggle('on', x === b); }); P.level = +b.dataset.l; }; });
+// posizioni di esempio: alcune posizioni tipiche + quelle dei problemi
+var EXAMPLES = [
+  { name: 'Partita Italiana dopo 3…Ac5', moves: ['e4', 'e5', 'Nf3', 'Nc6', 'Bc4', 'Bc5'] },
+  { name: 'Siciliana Najdorf', moves: ['e4', 'c5', 'Nf3', 'd6', 'd4', 'cxd4', 'Nxd4', 'Nf6', 'Nc3', 'a6'] },
+  { name: 'Gambetto di Donna rifiutato', moves: ['d4', 'd5', 'c4', 'e6', 'Nc3', 'Nf6'] },
+  { name: 'Finale: re e torre contro re', fen: '4k3/8/8/8/8/8/8/R3K3 w - - 0 1' },
+  { name: 'Finale: pedone passato', fen: '8/8/8/4k3/8/8/1P6/1K6 w - - 0 1' }
+];
+function exampleFen(e) { var g = new Chess(e.fen || undefined); (e.moves || []).forEach(function (m) { g.move(m); }); return g.fen(); }
+(function () {
+  var sel = $('#fenSel'), h = '<option value="">— scegli —</option>';
+  EXAMPLES.forEach(function (e, i) { h += '<option value="ex' + i + '">' + esc(e.name) + '</option>'; });
+  PUZZLES.forEach(function (p) { h += '<option value="pz' + esc(p.id) + '">Problema: ' + esc(p.title) + '</option>'; });
+  sel.innerHTML = h;
+  sel.onchange = function () {
+    var v = sel.value, f = '';
+    if (v.indexOf('ex') === 0) f = exampleFen(EXAMPLES[+v.slice(2)]);
+    else if (v.indexOf('pz') === 0) { var p = PUZZLES.filter(function (x) { return x.id === v.slice(2); })[0]; if (p) f = puzzleFen(p); }
+    $('#fenInput').value = f;
+  };
+})();
+$$('#startSeg button').forEach(function (b) { b.onclick = function () {
+  $$('#startSeg button').forEach(function (x) { x.classList.toggle('on', x === b); }); P.startKind = b.dataset.s;
+  $('#fenBox').style.display = P.startKind === 'fen' ? '' : 'none';
+  if (P.startKind === 'init') newGame(START_FEN);
+}; });
+$('#fenGo').onclick = function () {
+  var f = $('#fenInput').value.trim();
+  var v = new Chess().validate_fen(f);
+  if (!f || !v.valid) { $('#fenErr').textContent = 'Posizione non valida: controlla la FEN.'; return; }
+  var g = new Chess(f); if (g.game_over()) { $('#fenErr').textContent = 'In questa posizione la partita è già finita.'; return; }
+  $('#fenErr').textContent = ''; newGame(f);
+};
+function startGuidedFrom(fen) {
+  show('play');
+  P.mode = 'guided'; $$('#modeSeg button').forEach(function (x) { x.classList.toggle('on', x.dataset.m === 'guided'); });
+  P.startKind = 'fen'; $$('#startSeg button').forEach(function (x) { x.classList.toggle('on', x.dataset.s === 'fen'); });
+  $('#fenBox').style.display = ''; $('#fenInput').value = fen;
+  updateModeUI(); newGame(fen);
+}
+function newGame(fen) {
+  fen = fen || START_FEN;
+  P.token++; P.startFen = fen; P.game = new Chess(fen); P.userColor = P.game.turn();
+  P.over = false; P.busy = false; P.analyses = []; P.moveNo = 0; P.saved = false; P.guide = null; P.preview = null;
+  P.board.last = null; P.board.sel = null; P.board.hint = null; P.board.render(P.game);
+  $('#pBanner').classList.remove('on');
+  $('#feed').innerHTML = '<div class="empty">' + (state.junior ? 'Muovi un pezzo: Gufetto ti guarda!' : 'Fai la tua mossa: il prof commenterà ogni scelta.') + '</div>';
+  setStatus(yourTurnText());
+  closePreview(true);
+  if (P.mode === 'guided') runGuide();
+}
+$('#pNew').onclick = function () { newGame(P.startFen); };
+$('#pResign').onclick = function () { if (P.over || !P.game.history().length) return; var loser = P.mode === 'friend' ? P.game.turn() : P.userColor; endGame(loser === 'w' ? '0-1' : '1-0', 'Abbandono'); };
+$('#pUndo').onclick = function () {
+  if (P.busy || P.over || P.preview || (P.mode !== 'learn' && P.mode !== 'guided') || P.game.history().length < 2) return;
+  P.game.undo(); P.game.undo(); P.analyses.splice(-1, 1); P.moveNo--;
+  var h = P.game.history({ verbose: true }); P.board.last = h[h.length - 1] || null; P.board.render(P.game);
+  if (P.mode === 'learn') addComment('bot', 'Si riprova', state.junior ? 'Nessun problema, riprova!' : 'Mossa ripresa: cerca un’alternativa migliore.');
+  setStatus(yourTurnText());
+  if (P.mode === 'guided') runGuide();
+};
+
+/* ----- guided mode ----- */
+function scoreText(sc) {
+  if (Math.abs(sc) > Engine.MATE - 200) { var plies = Engine.MATE - Math.abs(sc), n = Math.max(1, Math.ceil(plies / 2)); return sc > 0 ? 'matto in ' + n : 'subisci matto in ' + n; }
+  var v = sc / 100; return (v > 0 ? '+' : '') + v.toFixed(1);
+}
+function guideKind(diff, i) { return i === 0 ? 'best' : diff <= 20 ? 'good' : diff <= 60 ? 'ok' : diff <= 150 ? 'warn' : 'bad'; }
+var GUIDE_LABEL = { best: ['Migliore', 'La migliore!'], good: ['Ottima', 'Bellissima'], ok: ['Buona', 'Buona'], warn: ['Dubbia', 'Mmm…'], bad: ['Errore', 'Attento!'] };
+async function runGuide() {
+  if (P.mode !== 'guided' || P.over || P.game.turn() !== P.userColor) return;
+  var my = ++P.token, fen = P.game.fen();
+  P.guide = null; $('#guideList').style.display = 'none'; $('#guideList').innerHTML = '';
+  $('#guideBusy').textContent = state.junior ? 'Gufetto sta pensando…' : 'Analizzo tutte le mosse…';
+  $('#guideSummary').textContent = ''; $('#guideHint').disabled = true; $('#guideShow').disabled = true;
+  var r = await eng({ type: 'all', fen: fen, depth: 2 });
+  if (my !== P.token || P.game.fen() !== fen) return;
+  var ms = r.moves || [], best = ms.length ? ms[0].score : 0, cnt = { good: 0, ok: 0, warn: 0, bad: 0 };
+  ms.forEach(function (m, i) { m.diff = best - m.score; m.kind = guideKind(m.diff, i); cnt[m.kind === 'best' ? 'good' : m.kind]++; });
+  P.guide = { fen: fen, moves: ms, shown: false };
+  $('#guideBusy').textContent = '';
+  var J = state.junior;
+  $('#guideSummary').innerHTML = J
+    ? 'Hai <strong>' + ms.length + '</strong> mosse possibili. <strong>' + (cnt.good + cnt.ok) + '</strong> sono buone, <strong>' + cnt.bad + '</strong> sono trappole!'
+    : '<strong>' + ms.length + '</strong> ' + (ms.length === 1 ? 'mossa legale' : 'mosse legali') + ': <strong>' + cnt.good + '</strong> ' + (cnt.good === 1 ? 'ottima' : 'ottime') + ', ' + cnt.ok + ' ' + (cnt.ok === 1 ? 'buona' : 'buone') + ', ' + cnt.warn + ' ' + (cnt.warn === 1 ? 'dubbia' : 'dubbie') + ', ' + cnt.bad + ' ' + (cnt.bad === 1 ? 'errore' : 'errori') + '. Valutazione attuale: <strong>' + scoreText(best) + '</strong>.';
+  $('#guideHint').disabled = false; $('#guideShow').disabled = false;
+  $('#guideShow').textContent = 'Mostra tutte le mosse';
+}
+function renderGuideList() {
+  var g = P.guide; if (!g) return;
+  var box = $('#guideList'), J = state.junior; box.innerHTML = '';
+  g.moves.forEach(function (m, i) {
+    var row = el('div', 'guide-row');
+    row.innerHTML = '<span class="san">' + esc(m.san) + '</span><span class="tag2 ' + m.kind + '">' + GUIDE_LABEL[m.kind][J ? 1 : 0] + '</span><span class="note">' + (i === 0 ? scoreText(m.score) : (m.diff > 0 ? '−' + (m.diff / 100).toFixed(1) : '=')) + '</span><button class="btn" style="padding:4px 10px">Percorso</button>';
+    row.querySelector('button').onclick = function () { openPreview(m.san); };
+    box.appendChild(row);
+  });
+  box.style.display = '';
+}
+$('#guideShow').onclick = function () {
+  if (!P.guide) return;
+  var shown = $('#guideList').style.display !== 'none';
+  if (shown) { $('#guideList').style.display = 'none'; this.textContent = 'Mostra tutte le mosse'; return; }
+  renderGuideList(); this.textContent = 'Nascondi le mosse';
+};
+$('#guideHint').onclick = function () {
+  if (!P.guide || !P.guide.moves.length) return;
+  var b = P.guide.moves[0];
+  P.board.hint = b.from; P.board.render(P.game);
+  openPreview(b.san, true);
+};
+async function openPreview(san, isHint) {
+  var g = P.guide; if (!g) return;
+  var bar = $('#previewBar'); bar.classList.add('on');
+  $('#previewTitle').textContent = (isHint ? (state.junior ? 'La mossa magica è ' : 'La mossa migliore è ') : 'Percorso dopo ') + san;
+  $('#previewLine').textContent = 'Calcolo il percorso…'; $('#previewEval').textContent = ''; $('#pvAnswer').classList.remove('on');
+  var r = await eng({ type: 'line', fen: g.fen, san: san, len: 6, depth: 2 });
+  if (!P.guide || P.guide.fen !== g.fen) return;
+  P.preview = { fen: g.fen, line: r.line, idx: 0, white: r.white, san: san };
+  renderPreview();
+}
+function lineHtml(fen, line, idx) {
+  var parts = fen.split(' '), turn = parts[1], num = +parts[5] || 1, h = '';
+  for (var i = 0; i < line.length; i++) {
+    var white = (turn === 'w') === (i % 2 === 0);
+    if (white) h += num + '. '; else if (i === 0) h += num + '… ';
+    h += '<span' + (i === idx - 1 ? ' class="cur"' : '') + '>' + esc(line[i]) + '</span> ';
+    if (!white) num++;
+  }
+  return h;
+}
+function renderPreview() {
+  var pv = P.preview; if (!pv) return;
+  var g = new Chess(pv.fen), last = null;
+  for (var i = 0; i < pv.idx; i++) last = g.move(pv.line[i]);
+  P.board.last = last; P.board.sel = null; P.board.render(g);
+  $('#previewLine').innerHTML = lineHtml(pv.fen, pv.line, pv.idx);
+  var you = P.userColor === 'w' ? pv.white : -pv.white;
+  $('#previewEval').textContent = 'A fine percorso: ' + scoreText(you) + (state.junior ? '' : ' (dal tuo punto di vista)') + '. Usa ▶ per vedere le mosse una alla volta.';
+  setStatus('Anteprima del percorso: la partita è in pausa.');
+}
+$('#pvNext').onclick = function () { if (P.preview && P.preview.idx < P.preview.line.length) { P.preview.idx++; renderPreview(); } };
+$('#pvPrev').onclick = function () { if (P.preview && P.preview.idx > 0) { P.preview.idx--; renderPreview(); } };
+function closePreview(silent) {
+  P.preview = null; $('#previewBar').classList.remove('on'); P.board.hint = null;
+  var h = P.game.history({ verbose: true }); P.board.last = h[h.length - 1] || null; P.board.render(P.game);
+  if (!silent) setStatus(yourTurnText());
+}
+$('#pvBack').onclick = function () { closePreview(); };
+$('#pvExplain').onclick = async function () {
+  var pv = P.preview; if (!pv) return;
+  var box = $('#pvAnswer'); box.classList.add('on', 'typing'); box.textContent = '…';
+  var alts = P.guide ? P.guide.moves.slice(0, 4).map(function (m) { return m.san + ' (' + scoreText(m.score) + ')'; }).join(', ') : '';
+  var ans = await ask('Posizione (FEN): ' + pv.fen + '. Lo studente gioca col ' + colorName(P.userColor) + '. Le mosse migliori secondo il motore: ' + alts + '.\nPercorso calcolato dopo ' + pv.san + ': ' + pv.line.join(' ') + '. Valutazione finale: ' + scoreText(P.userColor === 'w' ? pv.white : -pv.white) + '.\nSpiega in 2-4 frasi perché ' + pv.san + ' porta a questo risultato: quale idea c\'è dietro e cosa succede nel percorso.', function (t) { box.textContent = t; });
+  box.classList.remove('typing');
+  box.textContent = ans || ('Spiegazione di esempio: dopo ' + pv.san + ' il percorso più probabile è ' + pv.line.join(' ') + '. Nel sito completo il prof la racconta a parole.');
+};
+
+async function userMove(m) {
+  var fen = P.game.fen(), mv = P.game.move(m); if (!mv) return;
+  P.token++; P.moveNo++; P.board.last = mv; P.board.hint = null; P.board.render(P.game);
+  if (P.mode === 'friend') {
+    P.analyses.push(null);
+    if (checkEnd()) return;
+    setStatus(yourTurnText()); return;
+  }
+  P.busy = true;
+  if (P.mode === 'guided') {
+    var gd = P.guide && P.guide.fen === fen ? P.guide : null;
+    $('#guideList').style.display = 'none'; $('#previewBar').classList.remove('on');
+    if (gd) {
+      var idx = gd.moves.findIndex(function (x) { return x.san === mv.san; }), gm = gd.moves[idx];
+      var label = GUIDE_LABEL[gm.kind][state.junior ? 1 : 0];
+      $('#guideLast').textContent = 'Hai giocato ' + mv.san + ': ' + label.toLowerCase() + (idx > 0 ? ' (la migliore era ' + gd.moves[0].san + ', ' + (idx + 1) + 'ª su ' + gd.moves.length + ').' : ', proprio la prima della lista!');
+      P.analyses.push({ san: mv.san, loss: gm.diff, best: gd.moves[0].san });
+      if (gm.kind === 'best' && state.junior) confetti();
+    }
+  } else {
+    var analysisP = eng({ type: 'analyze', fen: fen, san: mv.san });
+    if (P.mode === 'learn') {
+      setStatus(state.junior ? 'Gufetto guarda la tua mossa…' : 'Il prof analizza la mossa…');
+      var a = await analysisP; P.analyses.push({ san: mv.san, loss: a.loss, best: a.bestSan, white: a.white });
+      var kind = a.bestSan === mv.san ? 'good' : classify(a.loss);
+      var c = addComment(kind, mv.san + ' · ' + (state.junior ? KIND[kind].k : KIND[kind].t), localComment(kind, mv.san, a.bestSan, mv));
+      if (kind === 'good' && state.junior && mv.captured) confetti();
+      var wantAI = (kind === 'warn' || kind === 'bad' || P.moveNo === 1 || P.moveNo % 5 === 0) && AI.ready !== false;
+      if (wantAI) {
+        var tx = c.querySelector('.tx'), base = tx.textContent;
+        var prompt = 'Partita in corso (lo studente ha il ' + colorName(P.userColor) + '). Mosse: ' + pgnMoves(P.game) + '. Posizione prima della mossa (FEN): ' + fen + '.\nLo studente ha giocato ' + mv.san + '. Il motore valuta la mossa migliore ' + a.bestSan + ' e stima una perdita di ' + Math.round(a.loss) + ' centipedoni (' + KIND[kind].t + ').\nCommenta in 1-2 frasi l\'idea della mossa giocata e, se è un errore, perché ' + a.bestSan + ' era meglio. Non citare i centipedoni.';
+        ask(prompt, function (t) { tx.textContent = t; }).then(function (t) { if (t) { tx.textContent = t; Voice.speak(t); } else Voice.speak(base); });
+      } else Voice.speak(c.querySelector('.tx').textContent);
+    } else {
+      analysisP.then(function (a) { P.analyses.push({ san: mv.san, loss: a.loss, best: a.bestSan, white: a.white }); });
+    }
+  }
+  if (checkEnd()) { P.busy = false; return; }
+  setStatus(state.junior ? 'Il Robottino pensa…' : 'Il bot sta pensando…');
+  var depth = P.level === 1 ? 1 : P.level === 2 ? 2 : 3, rand = P.level === 1 ? 120 : P.level === 2 ? 25 : 0;
+  var t0 = Date.now(), r = await eng({ type: 'best', fen: P.game.fen(), depth: depth, rand: rand });
+  var wait = 450 - (Date.now() - t0); if (wait > 0) await new Promise(function (x) { setTimeout(x, wait); });
+  if (P.game.fen() !== new Chess(fen).fen() && P.over) return;
+  var bm = P.game.move(r.san); P.board.last = bm; P.board.render(P.game);
+  if (P.mode === 'learn') {
+    var tip = botTip(bm);
+    if (tip) addComment('bot', 'Il bot gioca ' + bm.san, tip, 'bot' + P.game.history().length);
+  }
+  P.busy = false;
+  if (checkEnd()) return;
+  setStatus(yourTurnText());
+  if (P.mode === 'guided') runGuide();
+}
+function botTip(bm) {
+  var J = state.junior;
+  if (P.game.in_check()) return J ? 'Il Robottino ti dà scacco: il tuo re è attaccato! Spostalo o proteggilo.' : 'Scacco: devi spostare il re, catturare il pezzo o interporre.';
+  if (bm.captured) return J ? 'Il Robottino ha mangiato un pezzo. Puoi riprenderlo?' : 'Il bot ha catturato: controlla se puoi riprendere.';
+  return null;
+}
+function pgnMoves(g) { var h = g.history(), s = '', parts = (P.startFen || START_FEN).split(' '), num = +parts[5] || 1, turn = parts[1];
+  for (var i = 0; i < h.length; i++) { var white = (turn === 'w') === (i % 2 === 0); if (white) s += num + '. '; else if (i === 0) s += num + '… '; s += h[i] + ' '; if (!white) num++; }
+  return s.trim(); }
+function checkEnd() {
+  var g = P.game; if (!g.game_over()) return false;
+  if (g.in_checkmate()) endGame(g.turn() === 'w' ? '0-1' : '1-0', 'Scacco matto');
+  else endGame('1/2-1/2', g.in_stalemate() ? 'Stallo' : g.in_threefold_repetition() ? 'Ripetizione' : g.insufficient_material() ? 'Materiale insufficiente' : 'Patta');
+  return true;
+}
+function endGame(result, why) {
+  P.over = true; P.busy = false; P.token++;
+  var userWin = (result === '1-0' && P.userColor === 'w') || (result === '0-1' && P.userColor === 'b'), J = state.junior;
+  var msg = P.mode === 'friend' ? why + ': ' + (result === '1-0' ? 'vince il bianco' : result === '0-1' ? 'vince il nero' : 'patta')
+    : why + ' — ' + (userWin ? (J ? 'HAI VINTO! Sei un campione!' : 'Hai vinto.') : result !== '1/2-1/2' ? (J ? 'Ha vinto il Robottino. La prossima è tua!' : 'Ha vinto il bot.') : 'Patta.');
+  var b = $('#pBanner'); b.innerHTML = '<strong>' + esc(msg) + '</strong><div class="row" style="margin-top:8px"><button class="btn" id="goReview">Revisione con il prof</button><button class="btn" id="again">Rigioca</button></div>';
+  b.classList.add('on'); setStatus(msg);
+  if (userWin && J) confetti();
+  var rec = { id: Date.now(), date: new Date().toISOString(), mode: P.mode, level: P.level, result: result, why: why, pgn: pgnMoves(P.game), sans: P.game.history(), fen: P.startFen, userColor: P.userColor, moves: P.game.history().length, junior: J };
+  var hist = store.get('history', []); hist.unshift(rec); store.set('history', hist.slice(0, 50));
+  $('#goReview').onclick = function () { openReview(rec); };
+  $('#again').onclick = function () { newGame(P.startFen); };
+}
+
+/* ============ REVISIONE ============ */
+var R = { rec: null, game: null, fen: START_FEN, sans: [], evals: [], loss: [], best: [], ply: 0, board: new Board($('#rvBoard'), { flip: function () { return R.rec && R.rec.userColor === 'b' && R.rec.mode !== 'friend'; } }) };
+async function openReview(rec) {
+  show('review'); R.rec = rec; R.ply = 0; $('#rvAnswer').classList.remove('on'); $('#rvQAnswer').classList.remove('on'); $('#rvStar').style.display = 'none';
+  R.fen = rec.fen || START_FEN;
+  if (rec.sans) R.sans = rec.sans.slice(); else { var g = new Chess(); g.load_pgn(rec.pgn); R.sans = g.history(); }
+  $('#rvSub').textContent = new Date(rec.date).toLocaleString('it-IT') + ' · ' + (rec.mode === 'friend' ? 'contro un amico' : 'contro il bot') + ' · ' + rec.result + ' (' + rec.why + ')';
+  $('#rvLayout').style.display = ''; R.evals = []; R.loss = []; R.best = [];
+  renderReview(); $('#rvStats').textContent = 'Analisi in corso…'; $('#rvAsk').disabled = true;
+  var t = new Chess(R.fen);
+  for (var i = 0; i < R.sans.length; i++) {
+    var a = await eng({ type: 'analyze', fen: t.fen(), san: R.sans[i] });
+    t.move(R.sans[i]); R.evals[i] = a.white; R.loss[i] = a.bestSan === R.sans[i] ? 0 : a.loss; R.best[i] = a.bestSan;
+    if (R.rec !== rec) return;
+    if (i % 4 === 3 || i === R.sans.length - 1) { drawGraph(); renderMoves(); }
+  }
+  drawGraph(); renderMoves(); summarize(); $('#rvAsk').disabled = false;
+}
+function counts(color) {
+  var c = { good: 0, ok: 0, warn: 0, bad: 0 };
+  for (var i = color; i < R.loss.length; i += 2) c[classify(R.loss[i])]++;
+  return c;
+}
+function summarize() {
+  var w = counts(0);
+  $('#rvStats').textContent = 'Le tue mosse (' + colorName((R.rec && R.rec.userColor) || 'w') + '): ' + w.good + ' ottime, ' + w.ok + ' buone, ' + w.warn + ' imprecisioni, ' + w.bad + ' errori.';
+}
+function keyMoments() {
+  var arr = []; for (var i = 0; i < R.loss.length; i += 2) arr.push({ i: i, loss: R.loss[i] });
+  return arr.sort(function (a, b) { return b.loss - a.loss; }).slice(0, 3).filter(function (x) { return x.loss >= 80; }).sort(function (a, b) { return a.i - b.i; });
+}
+function renderReview() {
+  var g = new Chess(R.fen), last = null; for (var i = 0; i < R.ply; i++) last = g.move(R.sans[i]);
+  R.game = g; R.board.last = last; R.board.render(g); renderMoves(); drawGraph();
+}
+function renderMoves() {
+  var box = $('#rvMoves'), h = '', parts = R.fen.split(' '), num = +parts[5] || 1, blackFirst = parts[1] === 'b';
+  var cells = R.sans.map(function (san, j) {
+    var k = R.loss[j] == null ? '' : classify(R.loss[j]), badge = k === 'bad' ? '??' : k === 'warn' ? '?!' : '';
+    return '<span class="mv' + (R.ply === j + 1 ? ' cur' : '') + '" data-p="' + (j + 1) + '">' + esc(san) + (badge ? '<span class="b ' + k + '">' + badge + '</span>' : '') + '</span>';
+  });
+  if (blackFirst) cells.unshift('<span></span>');
+  for (var i = 0; i < cells.length; i += 2) h += '<span class="note">' + (num++) + '.</span>' + cells[i] + (cells[i + 1] || '<span></span>');
+  box.innerHTML = h;
+  $$('#rvMoves .mv').forEach(function (m) { m.onclick = function () { R.ply = +m.dataset.p; renderReview(); }; });
+}
+function drawGraph() {
+  var svg = $('#rvGraph'), n = R.sans.length; if (!n) { svg.innerHTML = ''; return; }
+  var W = 400, H = 110, mid = H / 2, clamp = function (v) { return Math.max(-600, Math.min(600, v || 0)); };
+  var pts = [[0, mid]];
+  for (var i = 0; i < R.evals.length; i++) pts.push([(i + 1) / n * W, mid - clamp(R.evals[i]) / 600 * (mid - 6)]);
+  var css = getComputedStyle(document.body), acc = css.getPropertyValue('--accent').trim();
+  var area = 'M0 ' + mid + ' ' + pts.map(function (p) { return 'L' + p[0].toFixed(1) + ' ' + p[1].toFixed(1); }).join(' ') + ' L' + pts[pts.length - 1][0].toFixed(1) + ' ' + mid + ' Z';
+  var line = pts.map(function (p, i) { return (i ? 'L' : 'M') + p[0].toFixed(1) + ' ' + p[1].toFixed(1); }).join(' ');
+  var dots = '';
+  for (var j = 0; j < R.loss.length; j++) { var k = classify(R.loss[j]); if (j % 2 === 0 && (k === 'bad' || k === 'warn') && pts[j + 1]) dots += '<circle cx="' + pts[j + 1][0].toFixed(1) + '" cy="' + pts[j + 1][1].toFixed(1) + '" r="4" fill="' + (k === 'bad' ? '#c2410c' : '#c98a14') + '"/>'; }
+  var cur = R.ply ? '<line x1="' + (R.ply / n * W) + '" x2="' + (R.ply / n * W) + '" y1="0" y2="' + H + '" stroke="' + acc + '" stroke-dasharray="3 3"/>' : '';
+  svg.innerHTML = '<rect width="' + W + '" height="' + H + '" rx="8" fill="' + css.getPropertyValue('--accent-soft').trim() + '"/><path d="' + area + '" fill="' + acc + '" fill-opacity=".18"/><line x1="0" x2="' + W + '" y1="' + mid + '" y2="' + mid + '" stroke="#999" stroke-width=".6"/><path d="' + line + '" fill="none" stroke="' + acc + '" stroke-width="2"/>' + dots + cur;
+}
+$('#rvFirst').onclick = function () { R.ply = 0; renderReview(); };
+$('#rvPrev').onclick = function () { R.ply = Math.max(0, R.ply - 1); renderReview(); };
+$('#rvNext').onclick = function () { R.ply = Math.min(R.sans.length, R.ply + 1); renderReview(); };
+$('#rvLast').onclick = function () { R.ply = R.sans.length; renderReview(); };
+var reviewText = null;
+$('#rvAsk').onclick = async function () {
+  var box = $('#rvAnswer'); box.classList.add('on', 'typing'); box.textContent = 'Il prof rivede la partita…';
+  var km = keyMoments(), w = counts(0);
+  var facts = km.map(function (k) { return 'mossa ' + (Math.floor(k.i / 2) + 1) + '. ' + R.sans[k.i] + ' (meglio ' + R.best[k.i] + ', perdita ' + Math.round(k.loss) + ' cp)'; }).join('; ');
+  var prompt = 'Revisione di una partita dello studente (' + colorName(R.rec.userColor || 'w') + ')' + (R.rec.fen && R.rec.fen !== START_FEN ? ', iniziata dalla posizione ' + R.rec.fen : '') + '. Risultato: ' + R.rec.result + ' (' + R.rec.why + '). Mosse: ' + R.rec.pgn + '.\nStatistiche dello studente: ' + w.good + ' ottime, ' + w.ok + ' buone, ' + w.warn + ' imprecisioni, ' + w.bad + ' errori.\nMomenti chiave secondo il motore: ' + (facts || 'nessun errore grave') + '.\nScrivi una revisione in 3 parti brevi: 1) cosa è andato bene, 2) i momenti chiave spiegati, 3) un consiglio concreto da allenare. Massimo 120 parole.';
+  var ans = await ask(prompt, function (t) { box.textContent = t; });
+  box.classList.remove('typing');
+  if (!ans) ans = 'Revisione di esempio. Bene: ' + w.good + ' mosse ottime. ' + (facts ? 'Momenti chiave: ' + facts + '. ' : 'Nessun errore grave. ') + 'Consiglio: prima di ogni mossa controlla quali pezzi l’avversario può catturare.';
+  box.textContent = ans; reviewText = ans; $('#rvStar').style.display = ''; $('#rvStar').paint();
+};
+bindStar($('#rvStar'), function () { return reviewText && R.rec && { key: 'rv:' + R.rec.id, type: 'Consiglio', title: 'Revisione partita del ' + new Date(R.rec.date).toLocaleDateString('it-IT'), text: reviewText }; });
+$('#rvQSend').onclick = async function () {
+  var q = $('#rvQ').value.trim(); if (!q || !R.game) return;
+  var box = $('#rvQAnswer'); box.classList.add('on', 'typing'); box.textContent = '…';
+  var i = R.ply - 1, info = i >= 0 ? 'Ultima mossa: ' + R.sans[i] + (R.best[i] ? ' (il motore preferiva ' + R.best[i] + ')' : '') + '.' : 'Posizione iniziale.';
+  var ans = await ask('Revisione partita. FEN: ' + R.game.fen() + '. ' + info + ' Mosse fino a qui: ' + R.sans.slice(0, R.ply).join(' ') + '.\nDomanda: "' + q + '"', function (t) { box.textContent = t; });
+  box.classList.remove('typing'); box.textContent = ans || 'Risposta di esempio: nel sito completo il prof risponde sulla posizione mostrata.';
+};
+
+/* ============ ALLENAMENTO ============ */
+function puzzleFen(p) { var g = new Chess(p.fen || undefined); (p.moves || []).forEach(function (m) { g.move(m); }); return g.fen(); }
+var T = { theme: null, list: [], i: 0, p: null, game: null, step: 0, solved: false, busy: false,
+  board: null };
+T.board = new Board($('#trainBoard'), {
+  interactive: true,
+  flip: function () { return T.color === 'b'; },
+  canMove: function () { return T.p && !T.solved && !T.busy && T.game.turn() === T.color; },
+  onMove: function (m) { trainMove(m); }
+});
+function solvedSet() { return store.get('solved', {}); }
+function markSolved(id) { var s = solvedSet(); s[id] = 1; store.set('solved', s); }
+function themeName(t) { return state.junior ? t.kid : t.name; }
+function renderThemes() {
+  var g = $('#themeGrid'); g.innerHTML = ''; var sv = solvedSet();
+  THEMES.forEach(function (t) {
+    var ps = PUZZLES.filter(function (p) { return p.theme === t.id; }), done = ps.filter(function (p) { return sv[p.id]; }).length;
+    var c = el('div', 'card lesson-card theme-card');
+    c.innerHTML = '<span class="tag">' + esc(state.junior ? t.name : ps.length + ' problemi') + '</span><h3>' + esc(themeName(t)) + '</h3><p class="note" style="margin:0">' + esc(t.desc) + '</p><div class="cnt" style="margin-top:auto">' + (state.junior ? '⭐ ' + done + ' / ' + ps.length : 'Risolti ' + done + ' su ' + ps.length) + '</div>';
+    c.onclick = function () { openTheme(t.id); };
+    g.appendChild(c);
+  });
+}
+function openTheme(id, pid) {
+  T.theme = THEMES.filter(function (t) { return t.id === id; })[0];
+  T.list = PUZZLES.filter(function (p) { return p.theme === id; });
+  $('#trainHome').style.display = 'none'; $('#trainPlayer').style.display = '';
+  $('#trainTitle').textContent = themeName(T.theme);
+  var idx = pid ? T.list.findIndex(function (p) { return p.id === pid; }) : 0;
+  loadPuzzle(Math.max(0, idx)); window.scrollTo(0, 0);
+}
+function taskText(p) {
+  var side = colorName(T.color), J = state.junior;
+  var mate = /#$/.test(p.sol[p.sol.length - 1]), n = Math.ceil(p.sol.length / 2);
+  if (mate) return J ? 'Tocca al ' + side + ': trova lo scacco matto' + (n > 1 ? ' in ' + n + ' mosse!' : '!') : 'Muove il ' + side + ': matto in ' + n + '.';
+  if (p.theme === 'aperture') return J ? 'Tocca al ' + side + ': qual è una buona mossa?' : 'Muove il ' + side + ': trova una mossa buona per questa fase.';
+  return J ? 'Tocca al ' + side + ': trova la mossa che vince qualcosa!' : 'Muove il ' + side + ': trova la mossa che vince materiale' + (n > 1 ? ' (' + n + ' mosse)' : '') + '.';
+}
+function loadPuzzle(i) {
+  T.i = i; T.p = T.list[i]; T.game = new Chess(puzzleFen(T.p)); T.color = T.game.turn(); T.step = 0; T.solved = false; T.busy = false; T.line = T.p.sol.slice();
+  T.board.last = null; T.board.sel = null; T.board.hint = null; T.board.render(T.game);
+  $('#pzTheme').textContent = themeName(T.theme) + ' · ' + (i + 1) + ' di ' + T.list.length;
+  $('#pzTitle').textContent = state.junior ? T.p.kid : T.p.title;
+  $('#pzTask').textContent = taskText(T.p);
+  fb('', ''); $('#pzAnswer').classList.remove('on');
+  $('#pzStar').paint && $('#pzStar').paint();
+  var sv = solvedSet(), box = $('#pzList'); box.innerHTML = '';
+  T.list.forEach(function (p, j) { var b = el('button', (j === i ? 'on ' : '') + (sv[p.id] ? 'done' : ''), String(j + 1)); b.setAttribute('aria-label', 'Problema ' + (j + 1)); b.onclick = function () { loadPuzzle(j); }; box.appendChild(b); });
+}
+function fb(kind, text) { var f = $('#pzFeedback'); f.className = 'feedback' + (kind ? ' on ' + kind : ''); f.textContent = text; }
+function explain() { return state.junior ? T.p.k : T.p.t; }
+function finish(alt) {
+  T.solved = true; markSolved(T.p.id);
+  fb('ok', (alt ? (state.junior ? 'Funziona anche così! ' : 'Anche questa funziona! ') : (state.junior ? 'Bravissimo! ' : 'Esatto! ')) + explain());
+  if (state.junior) confetti();
+  var b = $('#pzList').children[T.i]; if (b) b.classList.add('done');
+  Voice.speak(explain());
+}
+async function trainMove(m) {
+  var before = T.game.fen(), mv = T.game.move(m); if (!mv) return;
+  T.board.last = mv; T.board.hint = null; T.board.render(T.game);
+  var want = T.line[T.step], ok = mv.san === want;
+  if (!ok && T.step === 0 && T.p.accept && T.p.accept.indexOf(mv.san) >= 0) { finish(true); return; }
+  if (!ok && T.step === 0 && T.p.alt && T.p.alt[mv.san]) { T.line = [mv.san].concat(T.p.alt[mv.san]); ok = true; }
+  if (!ok && T.step === T.line.length - 1) {
+    // a different last move is fine if it is mate or if the engine rates it best
+    if (T.game.in_checkmate()) { finish(true); return; }
+    T.busy = true; var a = await eng({ type: 'analyze', fen: before, san: mv.san }); T.busy = false;
+    if (a.loss <= 30 && !/#$/.test(want)) { finish(true); return; }
+  }
+  if (!ok) {
+    fb('no', state.junior ? 'Non è questa… guarda bene e riprova!' : 'Non è la mossa giusta: riprova (puoi chiedere un aiutino).');
+    T.busy = true;
+    setTimeout(function () { T.game.undo(); var h = T.game.history({ verbose: true }); T.board.last = h[h.length - 1] || null; T.board.render(T.game); T.busy = false; }, 900);
+    return;
+  }
+  T.step++;
+  if (T.step >= T.line.length) { finish(false); return; }
+  fb('ok', state.junior ? 'Sì! Continua…' : 'Giusto. Ora tocca all’avversario…');
+  T.busy = true;
+  setTimeout(function () {
+    var r = T.game.move(T.line[T.step]); T.step++; T.board.last = r; T.board.render(T.game); T.busy = false;
+    fb('ok', state.junior ? 'L’avversario ha mosso. Trova la prossima!' : 'Il ' + colorName(r.color) + ' ha giocato ' + r.san + '. Trova la continuazione.');
+  }, 600);
+}
+$('#pzHint').onclick = function () {
+  if (!T.p || T.solved) return;
+  var g = new Chess(T.game.fen()), m = g.move(T.line[T.step]);
+  if (m) { T.board.hint = m.from; T.board.render(T.game); fb('', ''); fb('ok', state.junior ? 'Guarda il pezzo evidenziato: è lui l’eroe!' : 'Il pezzo da muovere è evidenziato.'); }
+};
+$('#pzRetry').onclick = function () { loadPuzzle(T.i); };
+$('#pzNext').onclick = function () { loadPuzzle((T.i + 1) % T.list.length); };
+$('#pzSolve').onclick = function () {
+  if (!T.p) return;
+  loadPuzzle(T.i); T.busy = true; var k = 0;
+  (function stepIt() {
+    if (k >= T.line.length) { T.busy = false; T.solved = true; fb('ok', 'Soluzione: ' + T.line.join(' ') + '. ' + explain()); return; }
+    var r = T.game.move(T.line[k++]); T.board.last = r; T.board.render(T.game); setTimeout(stepIt, 700);
+  })();
+};
+$('#pzGuided').onclick = function () { if (T.p) startGuidedFrom(puzzleFen(T.p)); };
+$('#pzAsk').onclick = async function () {
+  if (!T.p) return;
+  var box = $('#pzAnswer'); box.classList.add('on', 'typing'); box.textContent = '…';
+  var ans = await ask('Problema di scacchi sul tema "' + T.theme.name + '". Posizione (FEN): ' + puzzleFen(T.p) + '. Soluzione: ' + T.p.sol.join(' ') + '. Spiegazione di base: ' + T.p.t + '\nSpiega con parole tue perché funziona e come riconoscere questo schema in partita.', function (t) { box.textContent = t; });
+  box.classList.remove('typing'); box.textContent = ans || explain();
+};
+bindStar($('#pzStar'), function () { return T.p && { key: 'pz:' + T.p.id, type: 'Consiglio', title: 'Problema: ' + T.p.title, text: T.p.t }; });
+$('#trainBack').onclick = function () { $('#trainPlayer').style.display = 'none'; $('#trainHome').style.display = ''; renderThemes(); };
+
+/* ============ NOTAZIONE ============ */
+var NT = { topic: null, ex: 0, game: null, played: false, board: new Board($('#ntBoard'), {}) };
+function ntTopics() { return NOTATION.filter(function (t) { return !state.junior || t.kids; }); }
+function renderNotation() {
+  var box = $('#ntTopics'); box.innerHTML = '';
+  var list = ntTopics();
+  if (!NT.topic || list.indexOf(NT.topic) < 0) NT.topic = list[0];
+  list.forEach(function (t, i) {
+    var b = el('button', 'btn' + (t === NT.topic ? ' primary' : ''), (i + 1) + '. ' + esc(state.junior ? t.kid : t.title));
+    b.onclick = function () { NT.topic = t; NT.ex = 0; renderNotation(); };
+    box.appendChild(b);
+  });
+  var t = NT.topic;
+  $('#ntTitle').textContent = state.junior ? t.kid : t.title;
+  $('#ntText').innerHTML = state.junior && t.kidText ? t.kidText : t.text;  // testo statico scritto da noi
+  $('#ntLegend').innerHTML = t.id === 'pieces' ? ['K|R|re', 'Q|D|donna', 'R|T|torre', 'B|A|alfiere', 'N|C|cavallo'].map(function (x) { var p = x.split('|'); return '<div><b>' + p[1] + '</b>' + p[2] + '<br><span class="note">ingl. ' + p[0] + '</span></div>'; }).join('') : '';
+  showExample();
+  $('#ntStar').paint && $('#ntStar').paint();
+  if (!QZ.started) newQuestion();
+}
+function exGame(e) { var g = new Chess(e.fen || undefined); (e.moves || []).forEach(function (m) { g.move(m); }); return g; }
+function showExample() {
+  var t = NT.topic, e = t.examples[NT.ex % t.examples.length];
+  NT.game = exGame(e); NT.played = false;
+  var h = NT.game.history({ verbose: true });
+  NT.board.last = h[h.length - 1] || null; NT.board.hint = e.mark || null; NT.board.render(NT.game);
+  $('#ntExLabel').textContent = 'Esempio ' + ((NT.ex % t.examples.length) + 1) + ' di ' + t.examples.length;
+  $('#ntParts').innerHTML = '';
+  if (e.play) { $('#ntBig').innerHTML = '?'; $('#ntNote').textContent = state.junior ? 'Premi ▶ e guarda dove va il pezzo!' : 'Premi ▶: il pezzo si muove e sotto compare come si scrive la mossa.'; $('#ntPlay').style.display = ''; }
+  else if (e.mark) { $('#ntBig').textContent = e.mark; $('#ntNote').textContent = e.note; $('#ntPlay').style.display = 'none'; }
+  else { $('#ntBig').innerHTML = '<span style="font-size:15px;word-break:break-all;font-family:var(--font)">' + esc(NT.game.fen()) + '</span>'; $('#ntNote').textContent = e.note.split(':')[0] + '.'; $('#ntPlay').style.display = 'none'; }
+  $('#ntNextEx').style.display = t.examples.length > 1 ? '' : 'none';
+  $('#ntPlay').textContent = '▶ Guarda la mossa';
+}
+$('#ntPlay').onclick = function () {
+  var e = NT.topic.examples[NT.ex % NT.topic.examples.length];
+  if (!e.play) return;
+  if (NT.played) { showExample(); }
+  var mv = NT.game.move(e.play); NT.played = true;
+  NT.board.last = mv; NT.board.hint = null; NT.board.render(NT.game);
+  $('#ntBig').innerHTML = esc(sanIt(mv.san)) + '<span class="en">internazionale: ' + esc(mv.san) + '</span>';
+  $('#ntParts').innerHTML = sanParts(mv.san).map(function (p) { return '<div class="nt-part"><b>' + (p.s ? esc(sanIt(p.s)) : '·') + '</b><span>' + esc(p.d) + '</span></div>'; }).join('');
+  $('#ntNote').textContent = e.note;
+  $('#ntPlay').textContent = '↺ Rivedi';
+  Voice.speak(e.note);
+};
+$('#ntNextEx').onclick = function () { NT.ex++; $('#ntPlay').textContent = '▶ Guarda la mossa'; showExample(); };
+bindStar($('#ntStar'), function () { return NT.topic && { key: 'nt:' + NT.topic.id, type: 'Spiegazione', title: 'Notazione: ' + NT.topic.title, text: NT.topic.text.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim() }; });
+
+/* ----- Prova tu ----- */
+var QZ = { kind: 'find', ok: 0, tot: 0, started: false, answered: false, target: null, game: null, move: null, before: null,
+  board: null };
+QZ.board = new Board($('#qzBoard'), {
+  interactive: true,
+  onSquare: function (sq) { if (QZ.kind !== 'find') return false; answerFind(sq); return true; },
+  canMove: function () { return QZ.kind === 'play' && !QZ.answered; },
+  onMove: function (m) { answerPlay(m); }
+});
+var FILES = 'abcdefgh';
+function randSq() { return FILES[Math.floor(Math.random() * 8)] + (1 + Math.floor(Math.random() * 8)); }
+function randomPosition() {
+  for (var tries = 0; tries < 20; tries++) {
+    var g = new Chess(), n = 4 + Math.floor(Math.random() * 14);
+    for (var i = 0; i < n && !g.game_over(); i++) { var ms = g.moves({ verbose: true }), caps = ms.filter(function (m) { return m.captured; }); var pool = caps.length && Math.random() < 0.3 ? caps : ms; g.move(pool[Math.floor(Math.random() * pool.length)]); }
+    if (!g.game_over()) return g;
+  }
+  return new Chess();
+}
+function pickMove(g) {
+  var ms = g.moves({ verbose: true }), interesting = ms.filter(function (m) { return m.captured || /[+#]/.test(m.san) || m.flags.indexOf('k') >= 0 || m.piece !== 'p'; });
+  var pool = interesting.length && Math.random() < 0.7 ? interesting : ms;
+  return pool[Math.floor(Math.random() * pool.length)];
+}
+function qzFb(kind, text) { var f = $('#qzFeedback'); f.className = 'feedback' + (kind ? ' on ' + kind : ''); f.textContent = text; }
+function qzScore(ok) { QZ.tot++; if (ok) QZ.ok++; $('#qzScore').textContent = QZ.ok + ' / ' + QZ.tot; if (ok && state.junior) confetti(); }
+function newQuestion() {
+  QZ.started = true; QZ.answered = false; qzFb('', ''); $('#qzOptions').innerHTML = ''; $('#qzWriteBox').style.display = 'none'; $('#qzInput').value = '';
+  QZ.board.hint = null; QZ.board.last = null; QZ.board.sel = null;
+  $('#qzRepeat').style.display = QZ.kind === 'write' ? '' : 'none';
+  var J = state.junior;
+  if (QZ.kind === 'find') {
+    QZ.game = new Chess(); QZ.target = randSq(); QZ.board.render(QZ.game);
+    $('#qzTask').textContent = J ? 'Tocca la casa ' + QZ.target + '!' : 'Tocca la casa ' + QZ.target + '.';
+  } else if (QZ.kind === 'name') {
+    QZ.game = new Chess(); QZ.target = randSq(); QZ.board.hint = QZ.target; QZ.board.render(QZ.game);
+    $('#qzTask').textContent = J ? 'Come si chiama la casa colorata?' : 'Come si chiama la casa evidenziata?';
+    var opts = [QZ.target]; while (opts.length < 4) { var s = randSq(); if (opts.indexOf(s) < 0) opts.push(s); }
+    opts.sort(function () { return Math.random() - 0.5; });
+    opts.forEach(function (o) { var b = el('button', 'btn', o); b.onclick = function () { answerName(o, b); }; $('#qzOptions').appendChild(b); });
+  } else if (QZ.kind === 'write') {
+    QZ.game = randomPosition(); QZ.before = QZ.game.fen(); QZ.move = pickMove(QZ.game);
+    $('#qzTask').textContent = J ? 'Guarda la mossa e scrivila!' : 'Guarda la mossa e scrivila in notazione (italiana o internazionale).';
+    $('#qzWriteBox').style.display = ''; replayWrite();
+  } else {
+    QZ.game = randomPosition(); QZ.move = pickMove(QZ.game); QZ.before = QZ.game.fen(); QZ.board.render(QZ.game);
+    $('#qzTask').textContent = (J ? 'Gioca questa mossa: ' : 'Gioca sulla scacchiera la mossa ') + sanIt(QZ.move.san) + (J ? '' : ' (muove il ' + colorName(QZ.game.turn()) + ').');
+  }
+}
+function replayWrite() {
+  var g = new Chess(QZ.before); QZ.board.last = null; QZ.board.render(g);
+  setTimeout(function () { var m = g.move(QZ.move.san); QZ.board.last = m; QZ.board.render(g); }, 700);
+}
+function answerFind(sq) {
+  if (QZ.answered) return;
+  QZ.answered = true; var ok = sq === QZ.target; qzScore(ok);
+  QZ.board.hint = QZ.target; QZ.board.render(QZ.game);
+  qzFb(ok ? 'ok' : 'no', ok ? (state.junior ? 'Esatto, bravissimo!' : 'Esatto: ' + sq + '.') : 'Hai toccato ' + sq + '. La casa ' + QZ.target + ' è quella evidenziata: colonna ' + QZ.target[0] + ', traversa ' + QZ.target[1] + '.');
+}
+function answerName(o, btn) {
+  if (QZ.answered) return;
+  QZ.answered = true; var ok = o === QZ.target; qzScore(ok);
+  btn.classList.add(ok ? 'primary' : 'hand');
+  qzFb(ok ? 'ok' : 'no', ok ? 'Giusto: ' + o + '.' : 'Era ' + QZ.target + ': colonna ' + QZ.target[0] + ', traversa ' + QZ.target[1] + '.');
+}
+function normMove(s) { return sanFromIt(String(s).trim().replace(/0/g, 'O').replace(/\s+/g, '').replace(/e\.p\./i, '').replace(/[!?]+$/, '')); }
+$('#qzCheck').onclick = function () {
+  if (QZ.answered || QZ.kind !== 'write') return;
+  var raw = $('#qzInput').value; if (!raw.trim()) return;
+  var guess = normMove(raw), want = QZ.move.san, plain = function (x) { return x.replace(/[+#]/g, ''); };
+  var ok = guess === want, almost = !ok && plain(guess) === plain(want);
+  QZ.answered = true; qzScore(ok);
+  qzFb(ok ? 'ok' : 'no', ok ? 'Perfetto: ' + sanIt(want) + ' (internazionale ' + want + ').'
+    : almost ? 'Quasi! Manca il segno di scacco: si scrive ' + sanIt(want) + '.'
+    : 'Si scrive ' + sanIt(want) + ' (internazionale ' + want + '): ' + sanParts(want).map(function (p) { return (p.s ? sanIt(p.s) + ' = ' : '') + p.d; }).join(', ') + '.');
+};
+$('#qzInput').onkeydown = function (e) { if (e.key === 'Enter') $('#qzCheck').onclick(); };
+function answerPlay(m) {
+  var g = QZ.game, mv = g.move(m); if (!mv) return;
+  QZ.board.last = mv; QZ.board.render(g);
+  var ok = mv.san === QZ.move.san; QZ.answered = true; qzScore(ok);
+  if (!ok) { g.undo(); var r = g.move(QZ.move.san); QZ.board.last = r; setTimeout(function () { QZ.board.render(g); }, 700); }
+  qzFb(ok ? 'ok' : 'no', ok ? 'Giusto!' : 'Hai giocato ' + sanIt(mv.san) + '. La mossa ' + sanIt(QZ.move.san) + ' è questa: guarda la scacchiera.');
+}
+$('#qzNext').onclick = newQuestion;
+$('#qzRepeat').onclick = function () { if (QZ.kind === 'write') replayWrite(); };
+$$('#qzSeg button').forEach(function (b) { b.onclick = function () { $$('#qzSeg button').forEach(function (x) { x.classList.toggle('on', x === b); }); QZ.kind = b.dataset.q; newQuestion(); }; });
+$('#qzNoCoord').onchange = function () { $('#qzBoard').classList.toggle('nocoord', this.checked); };
+
+/* ============ PREFERITI e STORICO ============ */
+var favType = 'Tutti';
+function renderFavs() {
+  var list = favs(), types = ['Tutti', 'Apertura', 'Spiegazione', 'Risposta', 'Consiglio'];
+  $('#favFilter').innerHTML = ''; var seg = el('div', 'seg');
+  types.forEach(function (t) { var b = el('button', t === favType ? 'on' : '', t); b.onclick = function () { favType = t; renderFavs(); }; seg.appendChild(b); });
+  $('#favFilter').appendChild(seg);
+  var box = $('#favList'); box.innerHTML = '';
+  var shown = list.filter(function (f) { return favType === 'Tutti' || f.type === favType; });
+  if (!shown.length) { box.innerHTML = '<div class="card empty">Ancora niente qui. Tocca ☆ su una lezione, un commento o una risposta.</div>'; return; }
+  shown.forEach(function (f) {
+    var c = el('div', 'card fav');
+    c.innerHTML = '<div class="t"><span class="pill">' + esc(f.type) + '</span> <strong>' + esc(f.title) + '</strong><p style="margin:6px 0 0">' + esc(f.text) + '</p></div><button class="star on" title="Rimuovi">★</button>';
+    c.querySelector('.star').onclick = function () { toggleFav(f); renderFavs(); };
+    box.appendChild(c);
+  });
+}
+function renderHistory() {
+  var hist = store.get('history', []), box = $('#histList'); box.innerHTML = '';
+  if (!hist.length) { box.innerHTML = '<div class="card empty">Nessuna partita ancora. Vai su Gioca!</div>'; return; }
+  hist.forEach(function (h) {
+    var c = el('div', 'card row'); c.style.justifyContent = 'space-between';
+    var lvl = h.mode === 'friend' ? 'con un amico' : 'bot ' + (['', 'facile', 'medio', 'difficile'][Number(h.level)] || '') + (h.mode === 'learn' ? ' · Impara' : ' · senza commenti');
+    c.innerHTML = '<div><strong>' + esc(h.result) + '</strong> · ' + esc(h.why) + '<div class="note">' + new Date(h.date).toLocaleString('it-IT') + ' · ' + lvl + ' · ' + (Number(h.moves) || 0) + ' mosse</div></div><button class="btn">Rivedi</button>';
+    c.querySelector('.btn').onclick = function () { openReview(h); };
+    box.appendChild(c);
+  });
+}
+
+/* ============ personalizzazione della scacchiera ============ */
+var boardPrefs = boardPrefsClean(store.get('boardPrefs', null));
+var BP_VARS = ['--sq-light', '--sq-dark', '--hl', '--sel'];
+function applyBoardPrefs() {
+  var b = document.body, th = boardThemeById(boardPrefs.theme);
+  BP_VARS.forEach(function (v, i) {
+    var val = th[['light', 'dark', 'hl', 'sel'][i]];
+    if (val) b.style.setProperty(v, val); else b.style.removeProperty(v);
+  });
+  PIECE_STYLES.forEach(function (s) { b.classList.toggle('pcs-' + s.id, boardPrefs.pieces === s.id && s.id !== 'classic'); });
+  b.classList.toggle('no-coord', !boardPrefs.coords);
+  b.classList.toggle('no-hints', !boardPrefs.hints);
+  b.classList.toggle('no-last', !boardPrefs.lastMove);
+}
+function setBoardPrefs(patch) {
+  boardPrefs = boardPrefsClean(Object.assign({}, boardPrefs, patch));
+  store.set('boardPrefs', boardPrefs); applyBoardPrefs(); renderBoardPanel();
+}
+var BP = { board: null };
+function swatchButton(label, pressed, chipHtml, onClick) {
+  var b = el('button', 'bp-sw', chipHtml + '<span>' + esc(label) + '</span>');
+  b.type = 'button'; b.setAttribute('aria-pressed', String(pressed)); b.onclick = onClick; return b;
+}
+function renderBoardPanel() {
+  if (!BP.board) BP.board = new Board($('#bpBoard'), {});
+  var g = new Chess(); g.move('e4'); g.move('e5');
+  BP.board.last = { from: 'e2', to: 'e4' }; BP.board.sel = 'g1'; BP.board.render(g);
+  var tg = $('#bpThemes'); tg.innerHTML = '';
+  BOARD_THEMES.forEach(function (th) {
+    var live = boardThemeById(th.id), chip = th.light
+      ? '<span class="chip"><i style="background:' + th.light + '"></i><i style="background:' + th.dark + '"></i></span>'
+      : '<span class="chip"><i style="background:var(--sq-light)"></i><i style="background:var(--sq-dark)"></i></span>';
+    tg.appendChild(swatchButton(live.name, boardPrefs.theme === th.id, chip, function () { setBoardPrefs({ theme: th.id }); }));
+  });
+  var pg = $('#bpPieces'); pg.innerHTML = '';
+  PIECE_STYLES.forEach(function (s) {
+    pg.appendChild(swatchButton(s.name, boardPrefs.pieces === s.id, '', function () { setBoardPrefs({ pieces: s.id }); }));
+  });
+  $('#bpCoords').checked = boardPrefs.coords; $('#bpHints').checked = boardPrefs.hints; $('#bpLast').checked = boardPrefs.lastMove;
+}
+$('#bpCoords').onchange = function () { setBoardPrefs({ coords: this.checked }); };
+$('#bpHints').onchange = function () { setBoardPrefs({ hints: this.checked }); };
+$('#bpLast').onchange = function () { setBoardPrefs({ lastMove: this.checked }); };
+$('#bpReset').onclick = function () { setBoardPrefs(BOARD_PREFS_DEFAULT); };
+applyBoardPrefs();
+
+/* ============ navigation and Junior mode ============ */
+function show(v) {
+  $$('#nav button').forEach(function (b) { b.classList.toggle('on', b.dataset.v === v); });
+  $$('.view').forEach(function (s) { s.classList.toggle('on', s.id === 'v-' + v); });
+  if (v !== 'lessons') pauseLesson();
+  if (v === 'favs') renderFavs();
+  if (v === 'notation') renderNotation();
+  if (v === 'train' && $('#trainPlayer').style.display === 'none') renderThemes();
+  if (v === 'history') renderHistory();
+  if (v === 'board') renderBoardPanel();
+  try { history.replaceState(null, '', '#' + v); } catch (e) {}
+}
+$$('#nav button').forEach(function (b) { b.onclick = function () { show(b.dataset.v); }; });
+function applyJunior() {
+  document.body.classList.toggle('junior', state.junior);
+  $('#juniorSwitch').setAttribute('aria-checked', String(state.junior));
+  $('#brand').textContent = state.junior ? 'Scacchi Junior' : 'ChessSaiFare';
+  var labels = state.junior ? ['Storie', 'Gioca', 'Rivedi', 'Sfide', 'Le case', 'Stelline', 'Partite', 'Scacchiera'] : ['Aperture', 'Gioca', 'Revisione', 'Allenamento', 'Notazione', 'Preferiti', 'Storico', 'Scacchiera'];
+  $$('#nav button').forEach(function (b, i) { b.textContent = labels[i]; });
+  $('#levelSeg').children[0].textContent = state.junior ? 'Facile' : 'Facile';
+  if (state.junior) { P.level = 1; $$('#levelSeg button').forEach(function (x, i) { x.classList.toggle('on', i === 0); }); }
+  refreshAvatars(); renderLessonGrid(); updateModeUI();
+  if (L.lesson && $('#lessonPlayer').style.display !== 'none') { if (state.junior && !L.lesson.kids) $('#lessonBack').onclick(); else { $('#lessonTitle').textContent = state.junior ? L.lesson.kidName : L.lesson.name; showStep(); } }
+  P.board.render(P.game); if (R.game) renderReview();
+  if ($('#v-notation').classList.contains('on')) renderNotation();
+  if (T.p && $('#trainPlayer').style.display !== 'none') { $('#trainTitle').textContent = themeName(T.theme); $('#pzTitle').textContent = state.junior ? T.p.kid : T.p.title; $('#pzTask').textContent = taskText(T.p); T.board.render(T.game); } else renderThemes();
+}
+function setJunior(v) { state.junior = v; store.set('junior', v); applyJunior(); }
+function toggleJunior() {
+  if (!state.junior) { setJunior(true); return; }
+  var m = $('#pinModal'); m.style.display = 'grid'; $('#pinInput').value = ''; $('#pinErr').textContent = ''; $('#pinInput').focus();
+}
+$('#pinCancel').onclick = function () { $('#pinModal').style.display = 'none'; };
+$('#pinOk').onclick = function () {
+  if ($('#pinInput').value === '1234') { $('#pinModal').style.display = 'none'; setJunior(false); }
+  else $('#pinErr').textContent = 'PIN non corretto.';
+};
+$('#pinInput').onkeydown = function (e) { if (e.key === 'Enter') $('#pinOk').onclick(); };
+$('#juniorSwitch').onclick = toggleJunior;
+$('#juniorSwitch').onkeydown = function (e) { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggleJunior(); } };
+function confetti() {
+  var c = el('div', 'confetti'), colors = ['#ff6b9d', '#7b4dff', '#ffd32a', '#2ed573', '#1e90ff'];
+  for (var i = 0; i < 40; i++) { var p = el('i'); p.style.left = Math.random() * 100 + 'vw'; p.style.background = colors[i % 5]; p.style.animationDelay = Math.random() * .4 + 's'; c.appendChild(p); }
+  document.body.appendChild(c); setTimeout(function () { c.remove(); }, 2200);
+}
+
+voiceLabel(); applyJunior(); newGame();
+var startView = (location.hash || '').slice(1);
+if (['lessons', 'play', 'review', 'train', 'notation', 'favs', 'history'].indexOf(startView) >= 0) show(startView);
+</script>
+</body>
+</html>
