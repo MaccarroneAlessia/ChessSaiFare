@@ -35,7 +35,7 @@ If it is not available, follow this file, skip the steps that need it and say wh
 - `documentazione/`, `contenuti/` and `strumenti/` are in `../ChessSaiFare-content/`.
 - The app is in `app/` (Next.js, strict TypeScript). Layers: `src/domain`, `src/application`, `src/infrastructure`, `src/features`, `src/shared`.
 - Checks, run in `app/`: `npm run format:check`, `npm run lint`, `npm run typecheck`, `npm test`, `npm run test:e2e`.
-- Full content check, run in `app/`: `CONTENT_DIR=../../ChessSaiFare-content/contenuti npx vitest run tests/content`.
+- Full content check, run in `app/`: `CONTENT_DIR="$(node -p "require('path').resolve('../../ChessSaiFare-content/contenuti')")" npx vitest run tests/content`. CONTENT_DIR must be absolute: a relative path is resolved from the test file, not from `app/`.
 - Prototype: `cd prototipo && npm ci && npm test && node build.js`.
 
 ## Public repository
