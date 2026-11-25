@@ -16,6 +16,17 @@ export type SiteContent = {
     subtitle: string;
     status: string;
   };
+  board: {
+    heading: string;
+    fenLabel: string;
+    valid: string;
+    reasons: Readonly<
+      Record<
+        'invalid-fen' | 'kings' | 'pawn-back-rank' | 'too-many-pawns' | 'opponent-in-check',
+        string
+      >
+    >;
+  };
   lessons: {
     heading: string;
     filterLevel: string;

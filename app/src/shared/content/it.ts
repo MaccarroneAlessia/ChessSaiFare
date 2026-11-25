@@ -15,6 +15,18 @@ export const it = {
     subtitle: 'Impara a giocare a scacchi con un prof che ti spiega ogni mossa.',
     status: 'Stiamo costruendo la prima versione del sito.',
   },
+  board: {
+    heading: 'Scacchiera',
+    fenLabel: 'Posizione (FEN)',
+    valid: 'Posizione valida.',
+    reasons: {
+      'invalid-fen': 'Il testo non è una posizione FEN valida.',
+      kings: 'Ci deve essere esattamente un re per colore.',
+      'pawn-back-rank': 'Un pedone non può stare sulla prima o sull’ottava traversa.',
+      'too-many-pawns': 'Ogni colore può avere al massimo otto pedoni.',
+      'opponent-in-check': 'Il lato che non muove non può essere sotto scacco.',
+    },
+  },
   lessons: {
     heading: 'Lezioni',
     filterLevel: 'Livello',

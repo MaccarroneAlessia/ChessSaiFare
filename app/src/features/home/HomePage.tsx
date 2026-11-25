@@ -1,5 +1,6 @@
 import { getHomeContent } from '@/application/home/getHomeContent';
 import type { LessonSummary } from '@/domain/lessons/filterLessons';
+import { BoardView } from '@/features/board/BoardView';
 import { LessonList } from '@/features/lessons/LessonList';
 import { SiteHeader } from '@/features/layout/SiteHeader';
 import { type Locale, contentFor } from '@/shared/content';
@@ -16,6 +17,7 @@ export function HomePage({
         <h1>{content.title}</h1>
         <p>{content.subtitle}</p>
         <p className="status">{content.status}</p>
+        <BoardView text={contentFor(locale).board} />
         <LessonList lessons={lessons} text={contentFor(locale).lessons} />
       </main>
     </>

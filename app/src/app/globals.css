@@ -39,3 +39,109 @@ h1 {
   height: auto;
   width: min(20rem, 80vw);
 }
+
+.site-nav {
+  display: flex;
+  gap: 1rem;
+  margin-left: auto;
+}
+
+.site-nav a {
+  color: var(--color-primary);
+}
+
+.board-section,
+.lessons {
+  margin-top: 2.5rem;
+}
+
+.board-section input {
+  display: block;
+  width: 100%;
+  box-sizing: border-box;
+  margin-top: 0.25rem;
+  padding: 0.5rem;
+  font: inherit;
+  color: var(--color-ink);
+  background: var(--color-ground);
+  border: 1px solid var(--color-primary);
+  border-radius: 0.375rem;
+}
+
+.board {
+  display: grid;
+  grid-template-columns: repeat(8, 1fr);
+  width: min(28rem, 90vw);
+  aspect-ratio: 1;
+  margin-top: 1rem;
+  border: 2px solid var(--color-ink);
+  font-size: min(3rem, 9vw);
+  line-height: 1;
+  text-align: center;
+}
+
+.board-square {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.board-square.light {
+  background: var(--color-soft);
+  color: var(--color-ink);
+}
+
+.board-square.dark {
+  background: var(--color-primary);
+  color: var(--color-ground);
+}
+
+.filters fieldset {
+  border: 0;
+  padding: 0;
+  margin: 0 0 0.75rem;
+}
+
+.filters legend {
+  font-weight: 600;
+  margin-bottom: 0.25rem;
+}
+
+.filter-button {
+  margin: 0 0.25rem 0.25rem 0;
+  padding: 0.375rem 0.75rem;
+  font: inherit;
+  color: var(--color-ink);
+  background: var(--color-ground);
+  border: 1px solid var(--color-primary);
+  border-radius: 999px;
+  cursor: pointer;
+}
+
+.filter-button[aria-pressed='true'] {
+  color: var(--color-ground);
+  background: var(--color-primary);
+}
+
+.lesson-cards {
+  list-style: none;
+  padding: 0;
+  display: grid;
+  gap: 0.75rem;
+}
+
+.lesson-card {
+  padding: 0.75rem 1rem;
+  background: var(--color-soft);
+  border-radius: 0.5rem;
+}
+
+.lesson-card h3 {
+  margin: 0;
+  font-size: 1.05rem;
+}
+
+.lesson-card p {
+  margin: 0.25rem 0 0;
+  color: color-mix(in srgb, var(--color-ink) 70%, transparent);
+}
