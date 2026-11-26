@@ -9,6 +9,6 @@
     "test": "node --test"
   },
   "dependencies": {
-    "chess.js": "^0.10.3"
+    "chess.js": "^1.4.0"
   }
 }
